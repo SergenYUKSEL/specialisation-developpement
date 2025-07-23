@@ -22,9 +22,9 @@ app.use(express.json());
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: "localhost",
-  port: 3309,
+  port: 8889,
   username: "root",
-  password: "",
+  password: "root",
   database: "db_shop",
   entities: [User, Product, Category],
 });

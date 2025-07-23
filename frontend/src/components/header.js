@@ -1,7 +1,7 @@
-import { isAuthenticated, logout } from "../utils/auth.js";
+import { auth } from "../utils/auth.js";
 
 export const renderHeader = () => {
-  const isConnected = isAuthenticated();
+  const isConnected = auth.isAuthenticated();
 
   return `
     <header class="bg-blue-600 text-white p-4">
@@ -31,7 +31,7 @@ export const logoutHeaderEvents = () => {
   if (logoutLink) {
     logoutLink.addEventListener("click", (e) => {
       e.preventDefault();
-      logout();
+      auth.logout();
       window.location.href = "/login.html";
     });
   }
