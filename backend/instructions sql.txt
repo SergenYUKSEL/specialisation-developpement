@@ -1,0 +1,29 @@
+CREATE DATABASE IF NOT EXISTS db_shop;
+
+- CREATE OR REPLACE TABLE users (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	email varchar(63) NOT NULL UNIQUE CHECK(LENGTH(email) >=6 AND email LIKE '%@%.%'),
+	pseudo varchar(50) NOT NULL UNIQUE CHECK(LENGTH(pseudo) >=3),
+	password varchar(255) NOT NULL CHECK(LENGTH(password) >=8)
+	);
+	
+- CREATE OR REPLACE TABLE categories (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	name varchar(255) NOT NULL UNIQUE,
+	product_count INT DEFAULT 0
+	);	
+	
+- CREATE OR REPLACE TABLE products (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	libelle varchar(255),
+	description varchar(500) NOT NULL CHECK(LENGTH(description) <= 500),
+	image_url VARCHAR(500),
+    	prix DECIMAL(10,2) NOT NULL CHECK(prix >= 0),
+    	category_name varchar(255),
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_name) REFERENCES categories(name) ON DELETE SET NULL
+	);
+	
+CREATE INDEX idx_product_category ON products(category_name)
+	

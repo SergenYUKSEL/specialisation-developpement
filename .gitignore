@@ -1,1 +1,7 @@
 .cursor
+/frontend/node_modules
+/backend/node_modules
+
+
+/frontend/.idea
+/backend/.idea
