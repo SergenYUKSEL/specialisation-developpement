@@ -14,3 +14,20 @@ export const authMiddleware = (req, res, next) => {
         return res.status(401).json({ message: 'Token invalide' });
     }
 };
+
+export const  generateAuthResponseWithJwt = (user, res) => {
+    const token = jwt.sign(
+        { userId: user.id, email: user.email, pseudo: user.pseudo },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    res.cookie('auth_token', token, {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    const { password: userPassword, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+}
