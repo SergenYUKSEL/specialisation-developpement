@@ -206,6 +206,7 @@ export async function apiRequest(endpoint, options = {}) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for authentication
   };
 
   const mergedOptions = {
@@ -219,9 +220,23 @@ export async function apiRequest(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, mergedOptions);
-    const data = await response.json();
+    
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    let data = null;
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // For non-JSON responses (like DELETE operations)
+      data = { message: response.ok ? 'Opération réussie' : 'Erreur serveur' };
+    }
 
     if (!response.ok) {
+      // Handle authentication errors specifically
+      if (response.status === 401) {
+        throw new Error('Token manquant');
+      }
       throw new Error(data.message || `Erreur HTTP ${response.status}`);
     }
 

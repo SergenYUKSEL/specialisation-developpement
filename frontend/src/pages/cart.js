@@ -141,7 +141,7 @@ function renderCartItem(item) {
         <!-- Product Image -->
         <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
           <img 
-            src="${item.images[0]}" 
+            src="${item.images ? item.images[0] : (item.image || '/placeholder-image.jpg')}" 
             alt="${item.libelle}"
             class="w-full h-full object-cover"
           >

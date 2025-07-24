@@ -53,6 +53,40 @@ class CartService {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         this.items = JSON.parse(stored);
+        
+        // Migrate old cart items structure
+        this.items = this.items.map(item => {
+          // Convert old 'image' property to 'images' array
+          if (item.image && !item.images) {
+            return {
+              ...item,
+              images: [item.image],
+              stock: item.stock || 50
+            };
+          }
+          
+          // Ensure images is always an array
+          if (!item.images || !Array.isArray(item.images)) {
+            return {
+              ...item,
+              images: ['/placeholder-image.jpg'],
+              stock: item.stock || 50
+            };
+          }
+          
+          // Ensure stock exists
+          if (!item.stock) {
+            return {
+              ...item,
+              stock: 50
+            };
+          }
+          
+          return item;
+        });
+        
+        // Save the migrated data back to storage
+        this.saveToStorage();
       }
     } catch (error) {
       console.error('Error loading cart from storage:', error);
@@ -88,9 +122,10 @@ class CartService {
           id: product.id,
           libelle: product.libelle,
           prix: product.prix,
-          image: product.images ? product.images[0] : '/placeholder-image.jpg',
+          images: product.images || ['/placeholder-image.jpg'],
           quantity: quantity,
-          categorie: product.categorie
+          categorie: product.categorie,
+          stock: product.stock || 50
         });
       }
 
@@ -160,6 +195,13 @@ class CartService {
   }
 
   /**
+   * Clear all items from cart (alias for backward compatibility)
+   */
+  clearCart() {
+    this.clear();
+  }
+
+  /**
    * Get all cart items
    * @returns {Array} Cart items
    */
@@ -178,7 +220,9 @@ class CartService {
     return {
       itemCount,
       totalPrice,
-      totalItems: this.items.length
+      totalItems: this.items.length,
+      items: this.getItems(),
+      isEmpty: this.items.length === 0
     };
   }
 
@@ -271,16 +315,17 @@ export const cartOperations = {
   /**
    * Remove product from cart with feedback
    * @param {number} productId - Product ID to remove
+   * @param {string} productName - Product name for feedback message
    * @returns {Object} Operation result
    */
-  async removeFromCart(productId) {
+  async removeFromCart(productId, productName = 'Produit') {
     try {
       const success = cartService.removeItem(productId);
       
       if (success) {
         return {
           success: true,
-          message: 'Produit retiré du panier'
+          message: `${productName} retiré du panier`
         };
       } else {
         return {
@@ -302,16 +347,17 @@ export const cartOperations = {
    * Update quantity with feedback
    * @param {number} productId - Product ID
    * @param {number} quantity - New quantity
+   * @param {string} productName - Product name for feedback message
    * @returns {Object} Operation result
    */
-  async updateQuantity(productId, quantity) {
+  async updateCartQuantity(productId, quantity, productName = 'Produit') {
     try {
       const success = cartService.updateQuantity(productId, quantity);
       
       if (success) {
         return {
           success: true,
-          message: 'Quantité mise à jour'
+          message: `Quantité de ${productName} mise à jour`
         };
       } else {
         return {
@@ -321,12 +367,22 @@ export const cartOperations = {
       }
 
     } catch (error) {
-      console.error('Error in updateQuantity operation:', error);
+      console.error('Error in updateCartQuantity operation:', error);
       return {
         success: false,
         message: 'Erreur lors de la mise à jour'
       };
     }
+  },
+
+  /**
+   * Update quantity with feedback (alias for backward compatibility)
+   * @param {number} productId - Product ID
+   * @param {number} quantity - New quantity
+   * @returns {Object} Operation result
+   */
+  async updateQuantity(productId, quantity) {
+    return this.updateCartQuantity(productId, quantity);
   },
 
   /**

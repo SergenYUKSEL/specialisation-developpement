@@ -6,6 +6,7 @@
 import { auth } from '../utils/auth.js';
 import { router } from '../utils/router.js';
 import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
+import { showProductFormModal } from '../components/product-form-modal.js';
 
 /**
  * Create and render the dashboard page
@@ -65,6 +66,17 @@ export function createDashboardPage() {
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Catalogue</h3>
             <p class="text-gray-600 text-sm">Parcourir tous les produits</p>
+          </div>
+
+          <!-- Ajouter Produit Card -->
+          <div class="group bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl p-6 shadow-xl border border-indigo-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer flex flex-col items-center justify-center" id="add-product-btn">
+            <div class="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-indigo-700 mb-2">Ajouter un produit</h3>
+            <p class="text-gray-600 text-sm">Créer un nouveau produit</p>
           </div>
 
           <!-- Cart Card -->
@@ -139,6 +151,16 @@ export function createDashboardPage() {
   // Make router available globally for onclick handlers
   window.router = router;
   window.showAccountInfo = showAccountInfo;
+
+  // Ajouter un produit (modal)
+  setTimeout(() => {
+    const addBtn = document.getElementById('add-product-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        showProductFormModal({ mode: 'add', onSuccess: () => window.location.reload() });
+      });
+    }
+  }, 0);
 }
 
 /**

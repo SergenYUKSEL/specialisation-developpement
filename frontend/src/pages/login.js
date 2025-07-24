@@ -134,8 +134,8 @@ export function createLoginPage() {
               </div>
             </div>
             <div class="mt-3 text-xs text-gray-500 bg-gray-50 rounded-md p-3">
-              <strong>Email:</strong> admin@example.com<br>
-              <strong>Mot de passe:</strong> Admin123!
+              <strong>Email:</strong> user@example.com<br>
+              <strong>Mot de passe:</strong> User123!
             </div>
           </div>
         </div>
