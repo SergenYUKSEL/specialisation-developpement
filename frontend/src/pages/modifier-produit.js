@@ -153,6 +153,7 @@ form.addEventListener("submit", async (e) => {
       method: "PUT",
       // headers: headers(),
       body: formData,
+      credentials: "include",
     });
     if (!res.ok) throw new Error("Erreur lors de la modification");
     alert("Produit modifié avec succès");

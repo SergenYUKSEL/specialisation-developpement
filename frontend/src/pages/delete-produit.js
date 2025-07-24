@@ -9,6 +9,7 @@ export const deleteProduct = async (productId) => {
       {
         method: "DELETE",
         // headers: headers(),
+        credentials: "include",
       }
     );
 

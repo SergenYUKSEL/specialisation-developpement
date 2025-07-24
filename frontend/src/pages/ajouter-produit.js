@@ -136,6 +136,7 @@ form.addEventListener("submit", async (e) => {
       method: "POST",
       body: buildFormData(formValues),
       // headers: headers(),
+      credentials: "include",
     });
 
     if (!response.ok) throw new Error("Erreur serveur");
