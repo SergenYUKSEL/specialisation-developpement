@@ -19,8 +19,7 @@ export const Product = new EntitySchema({
       length: 500,
     },
     image_url: {
-      type: "varchar",
-      length: 500,
+      type: "text",
       nullable: true,
     },
     prix: {

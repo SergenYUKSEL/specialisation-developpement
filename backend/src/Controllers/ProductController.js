@@ -1,6 +1,8 @@
 import { AppDataSource } from "../index.js";
 import { Product } from "../Entities/Product.js";
 import { Category } from "../Entities/Category.js";
+import fs from "fs";
+import path from "path";
 
 export class ProductController {
   static async getAll(req, res) {
@@ -31,7 +33,13 @@ export class ProductController {
       }
 
       console.log(product);
-      res.status(200).json(product);
+
+      const produit = {
+        ...product,
+        image_url: product.image_url ? JSON.parse(product.image_url) : [],
+      };
+
+      res.status(200).json(produit);
     } catch (error) {
       console.error("Erreur lors de la récupération du produit:", error);
       res.status(500).json({ message: "Erreur serveur" });
@@ -40,7 +48,11 @@ export class ProductController {
 
   static async create(req, res) {
     try {
-      const { libelle, description, image_url, prix, category_name } = req.body;
+      const { libelle, description, prix, category_name } = req.body;
+
+      const files = req.files;
+
+      const imageFilenames = files.map((file) => file.filename);
 
       const productRepository = AppDataSource.getRepository(Product);
       const categoryRepository = AppDataSource.getRepository(Category);
@@ -56,9 +68,9 @@ export class ProductController {
       const newProduct = productRepository.create({
         libelle,
         description,
-        image_url,
         prix,
         category_name,
+        image_url: JSON.stringify(imageFilenames),
       });
 
       const savedProduct = await productRepository.save(newProduct);
@@ -79,7 +91,8 @@ export class ProductController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { libelle, description, image_url, prix, category_name } = req.body;
+      const { libelle, description, prix, category_name, imagesToRemove } =
+        req.body;
 
       const productRepository = AppDataSource.getRepository(Product);
       const categoryRepository = AppDataSource.getRepository(Category);
@@ -88,46 +101,60 @@ export class ProductController {
       if (!product) {
         return res.status(404).json({ message: "Produit non trouvé" });
       }
+      
+      product.libelle = libelle ?? product.libelle;
+      product.description = description ?? product.description;
+      product.prix = prix ?? product.prix;
 
       const oldCategoryName = product.category_name;
-
       let newCategory = null;
-      if (category_name) {
+
+      if (category_name && category_name !== oldCategoryName) {
         newCategory = await categoryRepository.findOneBy({
           name: category_name,
         });
-        if (!newCategory) {
+        if (!newCategory)
           return res.status(400).json({ message: "Catégorie non trouvée" });
-        }
+        product.category_name = category_name;
       }
 
-      product.libelle = libelle || product.libelle;
-      product.description = description || product.description;
-      product.image_url = image_url || product.image_url;
-      product.prix = prix || product.prix;
-      product.category_name =
-        category_name !== undefined ? category_name : product.category_name;
+      // Suppression des anciennes images
+      const existingImages = Array.isArray(product.image_url)
+        ? product.image_url
+        : JSON.parse(product.image_url || "[]");
 
-      const updatedProduct = await productRepository.save(product);
+      const imagesToDelete = JSON.parse(imagesToRemove || "[]");
 
-      if (oldCategoryName !== product.category_name) {
-        if (oldCategoryName) {
-          const oldCategory = await categoryRepository.findOneBy({
-            name: oldCategoryName,
-          });
-          if (oldCategory && oldCategory.product_count > 0) {
-            oldCategory.product_count -= 1;
-            await categoryRepository.save(oldCategory);
-          }
+      imagesToDelete.forEach((filename) => {
+        const filepath = path.join("src/images", filename);
+        if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+      });
+
+      const updatedImages = [
+        ...existingImages.filter((img) => !imagesToDelete.includes(img)),
+        ...(req.files || []).map((file) => file.filename),
+      ];
+
+      product.image_url = JSON.stringify(updatedImages);
+
+      const savedProduct = await productRepository.save(product);
+
+      if (oldCategoryName && oldCategoryName !== product.category_name) {
+        const oldCat = await categoryRepository.findOneBy({
+          name: oldCategoryName,
+        });
+        if (oldCat && oldCat.product_count > 0) {
+          oldCat.product_count--;
+          await categoryRepository.save(oldCat);
         }
 
         if (newCategory) {
-          newCategory.product_count += 1;
+          newCategory.product_count++;
           await categoryRepository.save(newCategory);
         }
       }
 
-      res.status(200).json(updatedProduct);
+      res.status(200).json(savedProduct);
     } catch (error) {
       console.error("Erreur lors de la mise à jour du produit:", error);
       res.status(500).json({ message: "Erreur serveur" });
@@ -144,6 +171,16 @@ export class ProductController {
       if (!product) {
         return res.status(404).json({ message: "Produit non trouvé" });
       }
+
+      // Suppression des anciennes images
+      const existingImages = Array.isArray(product.image_url)
+        ? product.image_url
+        : JSON.parse(product.image_url || "[]");
+
+      existingImages.forEach((filename) => {
+        const filepath = path.join("src/images", filename);
+        if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+      });
 
       const categoryName = product.category_name;
 

@@ -6,6 +6,7 @@ import { Product } from "./Entities/Product.js";
 import { Category } from "./Entities/Category.js";
 import routes from "./Controllers/routes.js";
 import cors from "cors";
+import path from "path";
 
 const app = express();
 const port = 3000;
@@ -44,3 +45,5 @@ AppDataSource.initialize()
   .catch((err) => {
     console.error("Error during Data Source initialization", err);
   });
+
+app.use("/images", express.static(path.join(path.resolve(), "src/images")));

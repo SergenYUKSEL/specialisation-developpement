@@ -5,10 +5,10 @@ export const deleteProduct = async (productId) => {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/produits/${productId}`,
+      `http://localhost:3000/api/products/${productId}`,
       {
         method: "DELETE",
-        headers: headers(),
+        // headers: headers(),
       }
     );
 

@@ -1,12 +1,12 @@
 import { renderHeader, logoutHeaderEvents } from "../components/header.js";
 import { renderFooter } from "../components/footer.js";
-import {
-  redirectIfNotAuthenticated,
-  getToken,
-  headers,
-} from "../utils/auth.js";
+// import {
+//   redirectIfNotAuthenticated,
+//   getToken,
+//   headers,
+// } from "../utils/auth.js";
 
-redirectIfNotAuthenticated();
+// redirectIfNotAuthenticated();
 
 const header = document.getElementById("header");
 const footer = document.getElementById("footer");
@@ -17,36 +17,53 @@ footer.innerHTML = renderFooter();
 const loadProduct = async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get("id");
-  const res = await fetch(`http://localhost:3000/api/produits/${productId}`, {
-    headers: headers(),
+
+  const res = await fetch(`http://localhost:3000/api/products/${productId}`, {
+    // headers: headers(),
   });
   if (!res.ok) throw new Error("Erreur chargement produit");
   return await res.json();
 };
 
-const initForm = ({ libelle, description, prix, idCategorie, images }) => {
+const initForm = ({ libelle, description, prix, category_name, image_url }) => {
   form.libelle.value = libelle;
   form.description.value = description;
   form.prix.value = prix;
-  form.categorie.value = idCategorie;
-  existingImages = [...images];
+  form.categorie.value = category_name;
 
-  images.forEach((url) => {
+  existingImages = [...image_url];
+
+  image_url.forEach((url) => {
     const remove = () => imagesToRemove.push(url);
-    const preview = createPreview(url, remove);
+    const preview = createPreview(
+      `http://localhost:3000/images/${url}`,
+      remove
+    );
     existingImagesContainer.appendChild(preview);
   });
 };
 
-const createOption = ({ id, nom }) => `<option value="${id}">${nom}</option>`;
+const createOption = ({ id, name }) =>
+  `<option value="${name}">${name}</option>`;
 
+// Chargement des catégories
 const loadCategories = async () => {
-  const res = await fetch("/src/data/categorie.json");
-  if (!res.ok) throw new Error("Échec chargement catégories");
-  const categories = await res.json();
-  selectCategorie.innerHTML =
-    `<option value="">-- Choisir --</option>` +
-    categories.map(createOption).join("");
+  try {
+    // const response = await fetch("/src/data/categorie.json");
+
+    const response = await fetch("http://localhost:3000/api/categories");
+    if (!response.ok) throw new Error("Erreur de chargement");
+
+    const categories = await response.json();
+    console.log(categories);
+    const select = document.querySelector("select[name='categorie']");
+    select.innerHTML =
+      `<option value="">-- Sélectionner --</option>` +
+      categories.map(createOption).join("");
+  } catch (err) {
+    alert("Impossible de charger les catégories");
+    console.error(err);
+  }
 };
 
 // Appel api pour récupérer les données (produit +  catégories)
@@ -127,14 +144,14 @@ form.addEventListener("submit", async (e) => {
   formData.append("libelle", form.libelle.value);
   formData.append("description", form.description.value);
   formData.append("prix", form.prix.value);
-  formData.append("idCategorie", form.categorie.value);
+  formData.append("category_name", form.categorie.value);
   formData.append("imagesToRemove", JSON.stringify(imagesToRemove));
   newImages.forEach((img) => formData.append("newImages", img));
 
   try {
-    const res = await fetch(`http://localhost:3000/api/produits/${productId}`, {
+    const res = await fetch(`http://localhost:3000/api/products/${productId}`, {
       method: "PUT",
-      headers: headers(),
+      // headers: headers(),
       body: formData,
     });
     if (!res.ok) throw new Error("Erreur lors de la modification");

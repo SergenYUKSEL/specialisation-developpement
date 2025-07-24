@@ -1,14 +1,15 @@
 import { renderHeader, logoutHeaderEvents } from "../components/header.js";
 import { renderFooter } from "../components/footer.js";
-import { redirectIfNotAuthenticated, headers } from "../utils/auth.js";
+// import { redirectIfNotAuthenticated, headers } from "../utils/auth.js";
 
-redirectIfNotAuthenticated();
+// redirectIfNotAuthenticated();
 
 document.getElementById("header").innerHTML = renderHeader();
 logoutHeaderEvents();
 document.getElementById("footer").innerHTML = renderFooter();
 
-const createOption = ({ id, name }) => `<option value="${name}">${name}</option>`;
+const createOption = ({ id, name }) =>
+  `<option value="${name}">${name}</option>`;
 
 // Chargement des catégories
 const loadCategories = async () => {
@@ -73,7 +74,13 @@ const isValidImageCount = (images) => images.length <= 3;
 const removeImageFromList = (images, fileToRemove) =>
   images.filter((img) => img !== fileToRemove);
 
-const buildFormData = ({ libelle, description, prix, category_name, images }) => {
+const buildFormData = ({
+  libelle,
+  description,
+  prix,
+  category_name,
+  images,
+}) => {
   const formData = new FormData();
   formData.append("libelle", libelle);
   formData.append("description", description);
@@ -128,7 +135,7 @@ form.addEventListener("submit", async (e) => {
     const response = await fetch("http://localhost:3000/api/products", {
       method: "POST",
       body: buildFormData(formValues),
-      headers: headers(),
+      // headers: headers(),
     });
 
     if (!response.ok) throw new Error("Erreur serveur");
