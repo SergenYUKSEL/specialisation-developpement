@@ -53,7 +53,7 @@ export const authAPI = {
   },
 
   /**
-   * User registration (simulé car le backend n'a pas d'authentification)
+   * User registration
    * @param {Object} userData - User data for registration
    * @param {string} userData.email - User email
    * @param {string} userData.pseudo - User pseudo
@@ -62,43 +62,32 @@ export const authAPI = {
    */
   async register(userData) {
     try {
-      // Simulation d'inscription car le backend n'a pas ces endpoints
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const response = await fetch("http://localhost:3000/api/users/register", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: userData.email,
+          pseudo: userData.pseudo,
+          password: userData.password
+        })
+      });
 
-      // Mock validation
-      if (!userData.email || !userData.pseudo || !userData.password) {
+      const data = await response.json();
+
+      if (!response.ok) {
         return {
           success: false,
-          message: 'Tous les champs sont requis'
+          message: data.message || 'Erreur lors de l\'inscription'
         };
       }
-
-      if (userData.password.length < 6) {
-        return {
-          success: false,
-          message: 'Le mot de passe doit contenir au moins 6 caractères'
-        };
-      }
-
-      if (!userData.email.includes('@')) {
-        return {
-          success: false,
-          message: 'Format d\'email invalide'
-        };
-      }
-
-      // Mock successful registration
-      const mockUser = {
-        id: Date.now(),
-        email: userData.email,
-        pseudo: userData.pseudo,
-        firstName: userData.pseudo
-      };
 
       return {
         success: true,
-        data: mockUser,
-        message: 'Inscription réussie'
+        data: data,
+        message: data.message
       };
 
     } catch (error) {
@@ -109,6 +98,37 @@ export const authAPI = {
       };
     }
   },
+
+  async logout() {
+    try {
+      const response = await fetch("http://localhost:3000/api/users/logout", {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Erreur lors de la déconnexion'
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message
+      };
+
+    } catch (error) {
+      console.error('Logout error:', error);
+      return {
+        success: false,
+        message: error.message || 'Erreur lors de la déconnexion'
+      };
+    }
+  },
+
   /**
    * Vérifier si l'utilisateur est connecté via /me
    * @returns {Promise<Object>} Current user data or error

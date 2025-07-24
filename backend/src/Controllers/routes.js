@@ -9,6 +9,9 @@ const router = Router();
 
 router.get("/users/me", UserController.me);
 router.post("/users/login", UserController.login);
+router.post("/users/register", UserController.register);
+router.post("/users/logout", UserController.logout);
+
 
 router.get("/products", ProductController.getAll);
 router.get("/products/:id", ProductController.getOne);

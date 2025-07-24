@@ -12,7 +12,7 @@ import { router } from '../utils/router.js';
  */
 export function createRegisterPage() {
   const app = document.getElementById('app');
-  
+
   app.innerHTML = `
     <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
@@ -30,44 +30,6 @@ export function createRegisterPage() {
       <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form id="register-form" class="space-y-6">
-            <!-- First Name Field -->
-            <div>
-              <label for="firstName" class="block text-sm font-medium text-gray-700">
-                Prénom
-              </label>
-              <div class="mt-1">
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  autocomplete="given-name"
-                  required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Votre prénom"
-                >
-              </div>
-              <div id="firstName-error" class="mt-1 text-sm text-red-600 hidden"></div>
-            </div>
-
-            <!-- Last Name Field -->
-            <div>
-              <label for="lastName" class="block text-sm font-medium text-gray-700">
-                Nom
-              </label>
-              <div class="mt-1">
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  autocomplete="family-name"
-                  required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Votre nom"
-                >
-              </div>
-              <div id="lastName-error" class="mt-1 text-sm text-red-600 hidden"></div>
-            </div>
-
             <!-- Email Field -->
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">
@@ -85,6 +47,25 @@ export function createRegisterPage() {
                 >
               </div>
               <div id="email-error" class="mt-1 text-sm text-red-600 hidden"></div>
+            </div>
+
+            <!-- Pseudo Field -->
+            <div>
+              <label for="pseudo" class="block text-sm font-medium text-gray-700">
+                Pseudo
+              </label>
+              <div class="mt-1">
+                <input
+                  id="pseudo"
+                  name="pseudo"
+                  type="text"
+                  autocomplete="username"
+                  required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Votre pseudo"
+                >
+              </div>
+              <div id="pseudo-error" class="mt-1 text-sm text-red-600 hidden"></div>
             </div>
 
             <!-- Password Field -->
@@ -244,9 +225,8 @@ function initializeRegisterForm() {
   });
 
   // Real-time validation
-  document.getElementById('firstName').addEventListener('blur', () => validateName('firstName', 'prénom'));
-  document.getElementById('lastName').addEventListener('blur', () => validateName('lastName', 'nom'));
   document.getElementById('email').addEventListener('blur', () => validateEmail());
+  document.getElementById('pseudo').addEventListener('blur', () => validatePseudo());
   passwordInput.addEventListener('input', () => validatePassword());
   confirmPasswordInput.addEventListener('blur', () => validateConfirmPassword());
 
@@ -255,49 +235,49 @@ function initializeRegisterForm() {
 }
 
 /**
- * Validate name fields
- */
-function validateName(fieldName, displayName) {
-  const input = document.getElementById(fieldName);
-  const name = validation.sanitizeInput(input.value);
-  
-  if (!name) {
-    showFieldError(fieldName, `Le ${displayName} est requis`);
-    return false;
-  }
-  
-  if (name.length < 2) {
-    showFieldError(fieldName, `Le ${displayName} doit contenir au moins 2 caractères`);
-    return false;
-  }
-  
-  if (name.length > 50) {
-    showFieldError(fieldName, `Le ${displayName} ne peut pas dépasser 50 caractères`);
-    return false;
-  }
-  
-  clearFieldError(fieldName);
-  return true;
-}
-
-/**
  * Validate email field
  */
 function validateEmail() {
   const emailInput = document.getElementById('email');
   const email = validation.sanitizeInput(emailInput.value);
-  
+
   if (!email) {
     showFieldError('email', 'L\'adresse email est requise');
     return false;
   }
-  
+
   if (!validation.isValidEmail(email)) {
     showFieldError('email', 'Veuillez entrer une adresse email valide');
     return false;
   }
-  
+
   clearFieldError('email');
+  return true;
+}
+
+/**
+ * Validate pseudo field
+ */
+function validatePseudo() {
+  const pseudoInput = document.getElementById('pseudo');
+  const pseudo = validation.sanitizeInput(pseudoInput.value);
+
+  if (!pseudo) {
+    showFieldError('pseudo', 'Le pseudo est requis');
+    return false;
+  }
+
+  if (pseudo.length < 2) {
+    showFieldError('pseudo', 'Le pseudo doit contenir au moins 2 caractères');
+    return false;
+  }
+
+  if (pseudo.length > 50) {
+    showFieldError('pseudo', 'Le pseudo ne peut pas dépasser 50 caractères');
+    return false;
+  }
+
+  clearFieldError('pseudo');
   return true;
 }
 
@@ -307,23 +287,23 @@ function validateEmail() {
 function validatePassword() {
   const passwordInput = document.getElementById('password');
   const password = passwordInput.value;
-  
+
   if (!password) {
     showFieldError('password', 'Le mot de passe est requis');
     updatePasswordStrength(0);
     updatePasswordRequirements(password);
     return false;
   }
-  
+
   const passwordValidation = validation.validatePassword(password);
-  
+
   if (!passwordValidation.isValid) {
     showFieldError('password', passwordValidation.errors[0]);
     updatePasswordStrength(calculatePasswordStrength(password));
     updatePasswordRequirements(password);
     return false;
   }
-  
+
   clearFieldError('password');
   updatePasswordStrength(4);
   updatePasswordRequirements(password);
@@ -338,17 +318,17 @@ function validateConfirmPassword() {
   const confirmPasswordInput = document.getElementById('confirmPassword');
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
-  
+
   if (!confirmPassword) {
     showFieldError('confirmPassword', 'La confirmation du mot de passe est requise');
     return false;
   }
-  
+
   if (password !== confirmPassword) {
     showFieldError('confirmPassword', 'Les mots de passe ne correspondent pas');
     return false;
   }
-  
+
   clearFieldError('confirmPassword');
   return true;
 }
@@ -358,13 +338,13 @@ function validateConfirmPassword() {
  */
 function calculatePasswordStrength(password) {
   let strength = 0;
-  
+
   if (password.length >= 8) strength++;
   if (/[A-Z]/.test(password)) strength++;
   if (/[a-z]/.test(password)) strength++;
   if (/\d/.test(password)) strength++;
   if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
-  
+
   return strength;
 }
 
@@ -373,13 +353,13 @@ function calculatePasswordStrength(password) {
  */
 function updatePasswordStrength(strength) {
   const colors = ['bg-gray-200', 'bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400'];
-  
+
   for (let i = 1; i <= 4; i++) {
     const bar = document.getElementById(`strength-bar-${i}`);
     if (bar) {
       // Reset all classes
       bar.className = 'h-1 w-1/4 rounded bg-gray-200';
-      
+
       // Apply color based on strength
       if (i <= strength) {
         bar.classList.remove('bg-gray-200');
@@ -400,7 +380,7 @@ function updatePasswordRequirements(password) {
     { id: 'req-number', test: /\d/.test(password) },
     { id: 'req-special', test: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) }
   ];
-  
+
   requirements.forEach(req => {
     const element = document.getElementById(req.id);
     if (element) {
@@ -420,70 +400,68 @@ function updatePasswordRequirements(password) {
  */
 async function handleRegisterSubmit(e) {
   e.preventDefault();
-  
+
   // Clear previous messages
   clearAllErrors();
   clearMessages();
-  
+
   // Get form data
   const formData = new FormData(e.target);
   const userData = {
-    firstName: validation.sanitizeInput(formData.get('firstName')),
-    lastName: validation.sanitizeInput(formData.get('lastName')),
     email: validation.sanitizeInput(formData.get('email')),
+    pseudo: validation.sanitizeInput(formData.get('pseudo')),
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
     terms: formData.get('terms')
   };
-  
+
   // Validate all inputs
   let isValid = true;
-  
-  if (!validateName('firstName', 'prénom')) isValid = false;
-  if (!validateName('lastName', 'nom')) isValid = false;
+
   if (!validateEmail()) isValid = false;
+  if (!validatePseudo()) isValid = false;
   if (!validatePassword()) isValid = false;
   if (!validateConfirmPassword()) isValid = false;
-  
+
   // Check terms acceptance
   if (!userData.terms) {
     showFieldError('terms', 'Vous devez accepter les conditions d\'utilisation');
     isValid = false;
   }
-  
+
   if (!isValid) {
     return;
   }
-  
+
   // Show loading state
   setLoadingState(true);
-  
+
   try {
     // Call API
     const response = await authAPI.register(userData);
-    
+
     if (response.success) {
       // Save user data
       auth.setUser(response.data.user);
-      
+
       // Show success message
       showSuccessMessage(`${response.message} Redirection en cours...`);
-      
+
       // Redirect to home page after short delay
       setTimeout(() => {
         router.navigate('/');
       }, 2000);
-      
+
     } else {
       // Show error message
       showGeneralError(response.message);
     }
-    
+
   } catch (error) {
     console.error('Registration error:', error);
     const errorResponse = handleApiError(error);
     showGeneralError(errorResponse.message);
-    
+
   } finally {
     setLoadingState(false);
   }
@@ -495,12 +473,12 @@ async function handleRegisterSubmit(e) {
 function showFieldError(fieldName, message) {
   const errorElement = document.getElementById(`${fieldName}-error`);
   const inputElement = document.getElementById(fieldName);
-  
+
   if (errorElement) {
     errorElement.textContent = message;
     errorElement.classList.remove('hidden');
   }
-  
+
   if (inputElement && inputElement.type !== 'checkbox') {
     inputElement.classList.add('border-red-300', 'focus:border-red-500', 'focus:ring-red-500');
     inputElement.classList.remove('border-gray-300', 'focus:border-indigo-500', 'focus:ring-indigo-500');
@@ -513,11 +491,11 @@ function showFieldError(fieldName, message) {
 function clearFieldError(fieldName) {
   const errorElement = document.getElementById(`${fieldName}-error`);
   const inputElement = document.getElementById(fieldName);
-  
+
   if (errorElement) {
     errorElement.classList.add('hidden');
   }
-  
+
   if (inputElement && inputElement.type !== 'checkbox') {
     inputElement.classList.remove('border-red-300', 'focus:border-red-500', 'focus:ring-red-500');
     inputElement.classList.add('border-gray-300', 'focus:border-indigo-500', 'focus:ring-indigo-500');
@@ -528,7 +506,7 @@ function clearFieldError(fieldName) {
  * Clear all field errors
  */
 function clearAllErrors() {
-  ['firstName', 'lastName', 'email', 'password', 'confirmPassword', 'terms'].forEach(fieldName => {
+  ['email', 'pseudo', 'password', 'confirmPassword', 'terms'].forEach(fieldName => {
     clearFieldError(fieldName);
   });
 }
@@ -561,7 +539,7 @@ function showSuccessMessage(message) {
 function clearMessages() {
   const generalError = document.getElementById('general-error');
   const successMessage = document.getElementById('success-message');
-  
+
   if (generalError) generalError.classList.add('hidden');
   if (successMessage) successMessage.classList.add('hidden');
 }
@@ -573,10 +551,10 @@ function setLoadingState(isLoading) {
   const submitButton = document.getElementById('submit-button');
   const submitText = document.getElementById('submit-text');
   const loadingSpinner = document.getElementById('loading-spinner');
-  
+
   if (submitButton && submitText && loadingSpinner) {
     submitButton.disabled = isLoading;
-    
+
     if (isLoading) {
       submitText.textContent = 'Création du compte...';
       loadingSpinner.classList.remove('hidden');
@@ -585,4 +563,4 @@ function setLoadingState(isLoading) {
       loadingSpinner.classList.add('hidden');
     }
   }
-} 
+}

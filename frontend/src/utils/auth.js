@@ -126,7 +126,13 @@ export const auth = {
   /**
    * Logout current user
    */
-  logout() {
+  async logout() {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Error during logout API call:', error);
+    }
+
     currentUser = null;
     this.clearStorage();
     this.notifyListeners();
