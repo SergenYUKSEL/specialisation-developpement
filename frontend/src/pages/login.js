@@ -196,61 +196,60 @@ function validateEmail() {
  */
 async function handleLoginSubmit(e) {
   e.preventDefault();
-  
+
   // Clear previous messages
   clearAllErrors();
   clearMessages();
-  
+
   // Get form data
   const formData = new FormData(e.target);
   const email = validation.sanitizeInput(formData.get('email'));
   const password = formData.get('password');
-  
+
   // Validate inputs
   let isValid = true;
-  
+
   if (!validateEmail()) {
     isValid = false;
   }
-  
+
   if (!password) {
     showFieldError('password', 'Le mot de passe est requis');
     isValid = false;
   }
-  
+
   if (!isValid) {
     return;
   }
-  
+
   // Show loading state
   setLoadingState(true);
-  
+
   try {
-    // Call API
     const response = await authAPI.login(email, password);
-    
+
     if (response.success) {
       // Save user data
       auth.setUser(response.data.user);
-      
+
       // Show success message
       showSuccessMessage(response.message);
-      
+
       // Redirect to home page after short delay
       setTimeout(() => {
         router.navigate('/');
       }, 1000);
-      
+
     } else {
       // Show error message
       showGeneralError(response.message);
     }
-    
+
   } catch (error) {
     console.error('Login error:', error);
-    const errorResponse = handleApiError(error);
-    showGeneralError(errorResponse.message);
-    
+    const errorMessage = handleApiError(error);
+    showGeneralError(errorMessage);
+
   } finally {
     setLoadingState(false);
   }

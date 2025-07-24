@@ -7,6 +7,8 @@ import { Category } from "./Entities/Category.js";
 import routes from "./Controllers/routes.js";
 import cors from "cors";
 import path from "path";
+import 'dotenv/config';
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = 3000;
@@ -14,18 +16,20 @@ const port = 3000;
 app.use(
   cors({
     origin: "http://localhost:5173",
-    credentials: false,
+    credentials: true,
   })
 );
 
 app.use(express.json());
+app.use(cookieParser());
+
 
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: "localhost",
-  port: 8889,
-  username: "root",
-  password: "root",
+  port: 3306,
+  username: "admin_shop",
+  password: "dev12345",
   database: "db_shop",
   entities: [User, Product, Category],
 });
@@ -39,7 +43,7 @@ app.use("/api", routes);
 AppDataSource.initialize()
   .then(() => {
     app.listen(port, () => {
-      console.log(`Backend lancer : http://localhost:${port}`);
+      console.log(`Backend démarré" : http://localhost:${port}`);
     });
   })
   .catch((err) => {

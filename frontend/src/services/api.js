@@ -11,44 +11,36 @@ const API_BASE_URL = 'http://localhost:3000/api';
 export const authAPI = {
   /**
    * User login (simulé car le backend n'a pas d'authentification)
-   * @param {Object} credentials - User credentials
-   * @param {string} credentials.email - User email  
+   * @param {string} credentials.email - User email
    * @param {string} credentials.password - User password
    * @returns {Promise<Object>} Response from server
+   * @param email
+   * @param password
    */
-  async login(credentials) {
+  async login(email, password) {
     try {
-      // Simulation d'authentification car le backend n'a pas ces endpoints
-      // En attendant l'implémentation backend
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const response = await fetch("http://localhost:3000/api/users/login", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
 
-      // Mock validation - dans un vrai système, ceci serait géré par le backend
-      if (!credentials.email || !credentials.password) {
+      const data = await response.json();
+
+      if (!response.ok) {
         return {
           success: false,
-          message: 'Email et mot de passe requis'
+          message: data.message || 'Erreur de connexion'
         };
       }
-
-      if (credentials.password.length < 6) {
-        return {
-          success: false,
-          message: 'Mot de passe trop court'
-        };
-      }
-
-      // Mock successful login
-      const mockUser = {
-        id: 1,
-        email: credentials.email,
-        firstName: credentials.email.split('@')[0],
-        pseudo: credentials.email.split('@')[0]
-      };
 
       return {
         success: true,
-        data: mockUser,
-        message: 'Connexion réussie'
+        data: data,
+        message: data.message
       };
 
     } catch (error) {
@@ -117,38 +109,41 @@ export const authAPI = {
       };
     }
   },
-
   /**
-   * Get current user profile (simulé)
-   * @param {string} token - Authentication token
-   * @returns {Promise<Object>} User profile data
+   * Vérifier si l'utilisateur est connecté via /me
+   * @returns {Promise<Object>} Current user data or error
    */
-  async getProfile(token) {
+  async checkAuth() {
     try {
-      // Simulation car le backend n'a pas ces endpoints
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const response = await fetch("http://localhost:3000/api/users/me", {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-      // Mock profile data
-      const mockProfile = {
-        id: 1,
-        email: 'user@example.com',
-        pseudo: 'user',
-        firstName: 'User'
-      };
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Non authentifié'
+        };
+      }
 
       return {
         success: true,
-        data: mockProfile
+        data: data,
+        message: data.message
       };
 
     } catch (error) {
-      console.error('Get profile error:', error);
+      console.error('Check auth error:', error);
       return {
         success: false,
-        message: error.message || 'Erreur de connexion au serveur'
+        message: error.message || 'Erreur de vérification'
       };
     }
-  }
+  },
+
 };
 
 /**

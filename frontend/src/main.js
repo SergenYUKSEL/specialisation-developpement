@@ -17,13 +17,13 @@ const footer = document.getElementById("footer");
 /**
  * Initialize the application
  */
-function initApp() {
+async function initApp() {
     // Initialize authentication system
-    auth.init();
-  
+    await auth.init();
+
     // Initialize cart service
     cartService.init();
-  
+
     // Register routes
     router.addRoute('/', createHomePage);
     router.addRoute('/login', createLoginPage);
@@ -31,27 +31,27 @@ function initApp() {
     router.addRoute('/products', createProductsPage);
     router.addRoute('/cart', createCartPage);
     router.addRoute('/statistics', createStatisticsPage);
-  
+
     // Register dynamic route for product details
     router.addRoute('/product/:id', (params) => {
-      const productId = params.id;
-      createProductDetailPage(productId);
+        const productId = params.id;
+        createProductDetailPage(productId);
     });
-  
+
     // Start the router after routes are registered
     router.start();
-  
+
     // Listen for authentication state changes
     auth.addListener((user) => {
-      // Refresh current page when auth state changes
-      const currentPage = router.getCurrentPage();
-      if (currentPage) {
-        router.navigate(currentPage, false);
-      }
+        // Refresh current page when auth state changes
+        const currentPage = router.getCurrentPage();
+        if (currentPage) {
+            router.navigate(currentPage, false);
+        }
     });
-  
+
     console.log('Application de gestion de produits initialisée avec toutes les fonctionnalités');
-  }
+}
   
   // Start the application
   initApp();
