@@ -2,6 +2,7 @@
  * Authentication utilities for user management
  * Handles user state, validation, and session management
  */
+import {authAPI} from "../services/api.js";
 
 // User state management
 let currentUser = null;
@@ -101,6 +102,28 @@ export const auth = {
   },
 
   /**
+   * Vérifier si l'utilisateur est connecté via le backend
+   * @returns {Promise<boolean>} True if user is authenticated
+   */
+  async checkAuthStatus() {
+    try {
+      const response = await authAPI.checkAuth();
+
+      if (response.success) {
+        this.setUser(response.data.user);
+        return true;
+      } else {
+        this.logout();
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      this.logout();
+      return false;
+    }
+  },
+
+  /**
    * Logout current user
    */
   logout() {
@@ -174,8 +197,8 @@ export const auth = {
 
   /**
    * Initialize auth system
-   */
-  init() {
+   */ async init() {
     this.loadFromStorage();
+    await this.checkAuthStatus();
   }
 }; 

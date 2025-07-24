@@ -12,7 +12,7 @@ import { router } from '../utils/router.js';
 export function createHomePage() {
   const app = document.getElementById('app');
   const currentUser = auth.getCurrentUser();
-  
+
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <!-- Navigation Header -->
@@ -32,11 +32,11 @@ export function createHomePage() {
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
                     <span class="text-white text-xs font-medium">
-                      ${currentUser.firstName.charAt(0)}${currentUser.lastName.charAt(0)}
+                      ${currentUser.pseudo.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <span class="text-sm text-gray-700 font-medium">
-                    ${currentUser.firstName} ${currentUser.lastName}
+                    ${currentUser.pseudo}
                   </span>
                   <button id="logout-btn" class="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
                     Déconnexion
@@ -87,7 +87,7 @@ export function createHomePage() {
                   </div>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-2">
-                  Bienvenue ${currentUser.firstName} !
+                  Bienvenue ${currentUser.pseudo} !
                 </h3>
                 <p class="text-gray-600">
                   Vous êtes connecté et pouvez accéder à toutes les fonctionnalités.
@@ -218,38 +218,39 @@ export function createHomePage() {
         </div>
       </section>
 
-          ${!currentUser ? `
-            <div class="mt-12 bg-indigo-50 rounded-lg p-8">
-              <div class="text-center">
-                <h3 class="text-lg font-medium text-indigo-900">
-                  Profitez de toutes les fonctionnalités
-                </h3>
-                <p class="mt-2 text-sm text-indigo-700">
-                  Connectez-vous ou créez un compte pour accéder à l'ensemble des fonctionnalités de l'application.
-                </p>
-                <div class="mt-6 flex justify-center space-x-4">
-                  <button id="cta-login" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
-                    Se connecter
-                  </button>
-                  <button id="cta-register" class="bg-white text-indigo-600 px-6 py-2 rounded-md border border-indigo-300 hover:bg-indigo-50">
-                    Créer un compte
-                  </button>
-                </div>
+      <!-- Bottom Section -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        ${!currentUser ? `
+          <div class="mt-12 bg-indigo-50 rounded-lg p-8">
+            <div class="text-center">
+              <h3 class="text-lg font-medium text-indigo-900">
+                Profitez de toutes les fonctionnalités
+              </h3>
+              <p class="mt-2 text-sm text-indigo-700">
+                Connectez-vous ou créez un compte pour accéder à l'ensemble des fonctionnalités de l'application.
+              </p>
+              <div class="mt-6 flex justify-center space-x-4">
+                <button id="cta-login-bottom" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
+                  Se connecter
+                </button>
+                <button id="cta-register-bottom" class="bg-white text-indigo-600 px-6 py-2 rounded-md border border-indigo-300 hover:bg-indigo-50">
+                  Créer un compte
+                </button>
               </div>
             </div>
-          ` : `
-            <div class="mt-12 bg-green-50 rounded-lg p-8">
-              <div class="text-center">
-                <h3 class="text-lg font-medium text-green-900">
-                  Bienvenue ${currentUser.firstName} !
-                </h3>
-                <p class="mt-2 text-sm text-green-700">
-                  Vous êtes connecté et pouvez profiter de toutes les fonctionnalités de l'application.
-                </p>
-              </div>
+          </div>
+        ` : `
+          <div class="mt-12 bg-green-50 rounded-lg p-8">
+            <div class="text-center">
+              <h3 class="text-lg font-medium text-green-900">
+                Bienvenue ${currentUser.pseudo} !
+              </h3>
+              <p class="mt-2 text-sm text-green-700">
+                Vous êtes connecté et pouvez profiter de toutes les fonctionnalités de l'application.
+              </p>
             </div>
-          `}
-        </div>
+          </div>
+        `}
       </main>
     </div>
   `;
@@ -268,10 +269,12 @@ function initializeHomeNavigation() {
   const loginBtn = document.getElementById('login-btn');
   const registerBtn = document.getElementById('register-btn');
   const logoutBtn = document.getElementById('logout-btn');
-  
+
   // CTA buttons
   const ctaLogin = document.getElementById('cta-login');
   const ctaRegister = document.getElementById('cta-register');
+  const ctaLoginBottom = document.getElementById('cta-login-bottom');
+  const ctaRegisterBottom = document.getElementById('cta-register-bottom');
   const registerLink = document.getElementById('register-link');
 
   // Feature navigation buttons
@@ -285,20 +288,28 @@ function initializeHomeNavigation() {
   if (loginBtn) {
     loginBtn.addEventListener('click', () => router.navigate('/login'));
   }
-  
+
   if (ctaLogin) {
     ctaLogin.addEventListener('click', () => router.navigate('/login'));
+  }
+
+  if (ctaLoginBottom) {
+    ctaLoginBottom.addEventListener('click', () => router.navigate('/login'));
   }
 
   // Register navigation
   if (registerBtn) {
     registerBtn.addEventListener('click', () => router.navigate('/register'));
   }
-  
+
   if (ctaRegister) {
     ctaRegister.addEventListener('click', () => router.navigate('/register'));
   }
-  
+
+  if (ctaRegisterBottom) {
+    ctaRegisterBottom.addEventListener('click', () => router.navigate('/register'));
+  }
+
   if (registerLink) {
     registerLink.addEventListener('click', () => router.navigate('/register'));
   }
@@ -332,13 +343,13 @@ function initializeHomeNavigation() {
         try {
           // Call logout API (if needed)
           // await authAPI.logout(token);
-          
+
           // Clear user session
           auth.logout();
-          
+
           // Refresh page to show logged out state
           router.navigate('/', false);
-          
+
         } catch (error) {
           console.error('Logout error:', error);
           // Still logout locally even if API call fails
@@ -348,4 +359,4 @@ function initializeHomeNavigation() {
       }
     });
   }
-} 
+}
