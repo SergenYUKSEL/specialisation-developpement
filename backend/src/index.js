@@ -26,10 +26,10 @@ app.use(cookieParser());
 
 export const AppDataSource = new DataSource({
   type: "mysql",
-  host: "localhost",
-  port: 3306,
-  username: "admin_shop",
-  password: "dev12345",
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  username: process.env.DATABASE_USERNAME,
+  password: process.env.DATABASE_PASSWORD,
   database: "db_shop",
   entities: [User, Product, Category],
 });
