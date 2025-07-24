@@ -6,6 +6,7 @@
 import { validation, auth } from '../utils/auth.js';
 import { authAPI, handleApiError } from '../services/api.js';
 import { router } from '../utils/router.js';
+import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
 
 /**
  * Create and render the login page
@@ -14,7 +15,15 @@ export function createLoginPage() {
   const app = document.getElementById('app');
   
   app.innerHTML = `
-    <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      ${createNavbar({ 
+        currentPage: 'login', 
+        showBackButton: true, 
+        backUrl: '/', 
+        pageTitle: 'Connexion' 
+      })}
+      
+      <div class="flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Connexion à votre compte
@@ -134,7 +143,9 @@ export function createLoginPage() {
     </div>
   `;
 
-  // Initialize form functionality
+  // Initialize navbar and form functionality
+  addNavbarStyles();
+  initializeNavbar();
   initializeLoginForm();
 }
 

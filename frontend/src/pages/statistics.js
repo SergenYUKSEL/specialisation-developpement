@@ -6,6 +6,7 @@
 import { statsAPI } from '../services/products.js';
 import { router } from '../utils/router.js';
 import { auth } from '../utils/auth.js';
+import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
 
 let statisticsData = null;
 
@@ -18,38 +19,12 @@ export function createStatisticsPage() {
   
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <!-- Navigation Header -->
-      <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center space-x-3">
-              <button id="back-home" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                ← Accueil
-              </button>
-              <div class="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-sm">GP</span>
-              </div>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Statistiques Produits
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              ${currentUser ? `
-                <span class="text-sm text-gray-700 font-medium">
-                  ${currentUser.firstName}
-                </span>
-                <button id="products-btn" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                  Catalogue
-                </button>
-              ` : `
-                <button id="login-link" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                  Se connecter
-                </button>
-              `}
-            </div>
-          </div>
-        </div>
-      </nav>
+      ${createNavbar({ 
+        currentPage: 'statistics', 
+        showBackButton: true, 
+        backUrl: '/', 
+        pageTitle: 'Statistiques Produits' 
+      })}
 
       <!-- Main Content -->
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -233,7 +208,9 @@ export function createStatisticsPage() {
     </div>
   `;
 
-  // Initialize page functionality
+  // Initialize navbar and page functionality
+  addNavbarStyles();
+  initializeNavbar();
   initializeStatisticsPage();
   loadStatistics();
 }
@@ -242,22 +219,22 @@ export function createStatisticsPage() {
  * Initialize statistics page functionality
  */
 function initializeStatisticsPage() {
-  // Navigation
-  const backHome = document.getElementById('back-home');
-  const productsBtn = document.getElementById('products-btn');
-  const loginLink = document.getElementById('login-link');
+  // Navigation (now handled by navbar component)
+  // const backHome = document.getElementById('back-home');
+  // const productsBtn = document.getElementById('products-btn');
+  // const loginLink = document.getElementById('login-link');
 
-  if (backHome) {
-    backHome.addEventListener('click', () => router.navigate('/'));
-  }
+  // if (backHome) {
+  //   backHome.addEventListener('click', () => router.navigate('/'));
+  // }
 
-  if (productsBtn) {
-    productsBtn.addEventListener('click', () => router.navigate('/products'));
-  }
+  // if (productsBtn) {
+  //   productsBtn.addEventListener('click', () => router.navigate('/products'));
+  // }
 
-  if (loginLink) {
-    loginLink.addEventListener('click', () => router.navigate('/login'));
-  }
+  // if (loginLink) {
+  //   loginLink.addEventListener('click', () => router.navigate('/login'));
+  // }
 
   // Action buttons
   const copyUrlBtn = document.getElementById('copy-url');

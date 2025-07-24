@@ -5,6 +5,7 @@
 
 import { auth } from '../utils/auth.js';
 import { router } from '../utils/router.js';
+import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
 
 /**
  * Create and render the home page
@@ -15,47 +16,7 @@ export function createHomePage() {
   
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <!-- Navigation Header -->
-      <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-sm">GP</span>
-              </div>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Gestion de Produits
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              ${currentUser ? `
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <span class="text-white text-xs font-medium">
-                      ${currentUser.firstName.charAt(0)}${currentUser.lastName.charAt(0)}
-                    </span>
-                  </div>
-                  <span class="text-sm text-gray-700 font-medium">
-                    ${currentUser.firstName} ${currentUser.lastName}
-                  </span>
-                  <button id="logout-btn" class="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
-                    Déconnexion
-                  </button>
-                </div>
-              ` : `
-                <div class="flex items-center space-x-3">
-                  <button id="login-btn" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                    Connexion
-                  </button>
-                  <button id="register-btn" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                    S'inscrire
-                  </button>
-                </div>
-              `}
-            </div>
-          </div>
-        </div>
-      </nav>
+      ${createNavbar({ currentPage: 'home' })}
 
       <!-- Hero Section -->
       <section class="relative overflow-hidden">
@@ -213,7 +174,23 @@ export function createHomePage() {
                   </svg>
                 </button>
               </div>
-            ` : ''}
+            ` : `
+              <div class="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 shadow-xl border-2 border-green-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h4a2 2 0 002-2V7a2 2 0 00-2-2h-4a2 2 0 00-2 2m6 0V17"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Tableau de Bord</h3>
+                <p class="text-gray-600 mb-6">Accédez à votre dashboard personnalisé avec toutes vos informations.</p>
+                <button id="dashboard-link" class="text-green-600 font-semibold hover:text-green-800 transition-colors flex items-center">
+                  Voir le dashboard
+                  <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                  </svg>
+                </button>
+              </div>
+            `}
           </div>
         </div>
       </section>
@@ -254,7 +231,9 @@ export function createHomePage() {
     </div>
   `;
 
-  // Initialize navigation functionality
+  // Initialize navbar and navigation functionality
+  addNavbarStyles();
+  initializeNavbar();
   initializeHomeNavigation();
 }
 
@@ -264,10 +243,10 @@ export function createHomePage() {
 function initializeHomeNavigation() {
   const currentUser = auth.getCurrentUser();
 
-  // Navigation buttons
-  const loginBtn = document.getElementById('login-btn');
-  const registerBtn = document.getElementById('register-btn');
-  const logoutBtn = document.getElementById('logout-btn');
+  // Navigation buttons (now handled by navbar component)
+  // const loginBtn = document.getElementById('login-btn');
+  // const registerBtn = document.getElementById('register-btn');  
+  // const logoutBtn = document.getElementById('logout-btn');
   
   // CTA buttons
   const ctaLogin = document.getElementById('cta-login');
@@ -280,20 +259,21 @@ function initializeHomeNavigation() {
   const cartLink = document.getElementById('cart-link');
   const statsLink = document.getElementById('stats-link');
   const managementLink = document.getElementById('management-link');
+  const dashboardLink = document.getElementById('dashboard-link');
 
-  // Login navigation
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => router.navigate('/login'));
-  }
+  // Login navigation (now handled by navbar)
+  // if (loginBtn) {
+  //   loginBtn.addEventListener('click', () => router.navigate('/login'));
+  // }
   
   if (ctaLogin) {
     ctaLogin.addEventListener('click', () => router.navigate('/login'));
   }
 
-  // Register navigation
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => router.navigate('/register'));
-  }
+  // Register navigation (now handled by navbar)
+  // if (registerBtn) {
+  //   registerBtn.addEventListener('click', () => router.navigate('/register'));
+  // }
   
   if (ctaRegister) {
     ctaRegister.addEventListener('click', () => router.navigate('/register'));
@@ -324,28 +304,32 @@ function initializeHomeNavigation() {
     managementLink.addEventListener('click', () => router.navigate('/products'));
   }
 
-  // Logout functionality
-  if (logoutBtn && currentUser) {
-    logoutBtn.addEventListener('click', async () => {
-      // Confirm logout
-      if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        try {
-          // Call logout API (if needed)
-          // await authAPI.logout(token);
-          
-          // Clear user session
-          auth.logout();
-          
-          // Refresh page to show logged out state
-          router.navigate('/', false);
-          
-        } catch (error) {
-          console.error('Logout error:', error);
-          // Still logout locally even if API call fails
-          auth.logout();
-          router.navigate('/', false);
-        }
-      }
-    });
+  if (dashboardLink) {
+    dashboardLink.addEventListener('click', () => router.navigate('/dashboard'));
   }
+
+  // Logout functionality (now handled by navbar)
+  // if (logoutBtn && currentUser) {
+  //   logoutBtn.addEventListener('click', async () => {
+  //     // Confirm logout
+  //     if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+  //       try {
+  //         // Call logout API (if needed)
+  //         // await authAPI.logout(token);
+  //         
+  //         // Clear user session
+  //         auth.logout();
+  //         
+  //         // Refresh page to show logged out state
+  //         router.navigate('/', false);
+  //         
+  //       } catch (error) {
+  //         console.error('Logout error:', error);
+  //         // Still logout locally even if API call fails
+  //         auth.logout();
+  //         router.navigate('/', false);
+  //       }
+  //     }
+  //   });
+  // }
 } 

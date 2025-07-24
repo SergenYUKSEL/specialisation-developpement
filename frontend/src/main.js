@@ -10,6 +10,7 @@ import { createProductsPage } from "./pages/products.js";
 import { createCartPage } from "./pages/cart.js";
 import { createStatisticsPage } from "./pages/statistics.js";
 import { createProductDetailPage } from "./pages/product-detail.js";
+import { createDashboardPage } from "./pages/dashboard.js";
 
 const header = document.getElementById("header");
 const footer = document.getElementById("footer");
@@ -31,6 +32,7 @@ function initApp() {
     router.addRoute('/products', createProductsPage);
     router.addRoute('/cart', createCartPage);
     router.addRoute('/statistics', createStatisticsPage);
+    router.addRoute('/dashboard', createDashboardPage);
   
     // Register dynamic route for product details
     router.addRoute('/product/:id', (params) => {
