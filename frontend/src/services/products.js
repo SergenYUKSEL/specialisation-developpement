@@ -8,6 +8,48 @@ import { apiRequest } from './api.js';
 const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
+ * Safely parse image URL field from backend
+ * @param {string} imageUrl - Raw image_url field from backend
+ * @returns {Array} Array of image URLs
+ */
+function parseImageUrls(imageUrl) {
+  let images = ['/placeholder-image.jpg']; // Default fallback
+  
+  if (!imageUrl) {
+    return images;
+  }
+
+  try {
+    // Try to parse as JSON first (for arrays of filenames)
+    const parsed = JSON.parse(imageUrl);
+    if (Array.isArray(parsed)) {
+      images = parsed.map(filename => {
+        // If it's a filename, prepend the server URL
+        if (filename && !filename.startsWith('http')) {
+          return `http://localhost:3000/images/${filename}`;
+        }
+        return filename || '/placeholder-image.jpg';
+      });
+    } else {
+      images = [parsed || '/placeholder-image.jpg'];
+    }
+  } catch (error) {
+    // If JSON.parse fails, treat it as a single URL or filename
+    if (typeof imageUrl === 'string') {
+      if (imageUrl.startsWith('http')) {
+        // It's already a full URL
+        images = [imageUrl];
+      } else {
+        // It's a filename, prepend server URL
+        images = [`http://localhost:3000/images/${imageUrl}`];
+      }
+    }
+  }
+
+  return images;
+}
+
+/**
  * Products API endpoints
  */
 export const productsAPI = {
@@ -21,46 +63,46 @@ export const productsAPI = {
    */
   async getAllProducts(filters = {}) {
     try {
-      // Build query string from filters
-      const queryParams = new URLSearchParams();
-      
+      // First, get all products from backend (no server-side filtering since backend doesn't support it)
+      const response = await apiRequest('/products');
+
+      if (!response.success) {
+        return response;
+      }
+
+      // Transform backend data to frontend format
+      let transformedData = response.data.map(product => ({
+        id: product.id,
+        libelle: product.libelle,
+        description: product.description,
+        prix: parseFloat(product.prix),
+        categorie: product.category_name || 'Non catégorisé',
+        images: parseImageUrls(product.image_url),
+        stock: 50, // Default stock since not in backend
+        featured: false // Default featured status
+      }));
+
+      // Apply client-side filtering
       if (filters.search) {
-        queryParams.append('search', filters.search);
-      }
-      
-      if (filters.category) {
-        queryParams.append('category', filters.category);
-      }
-      
-      if (filters.sort) {
-        queryParams.append('sort', filters.sort);
+        const searchTerm = filters.search.toLowerCase();
+        transformedData = transformedData.filter(product => 
+          product.libelle.toLowerCase().includes(searchTerm) ||
+          product.description.toLowerCase().includes(searchTerm) ||
+          product.categorie.toLowerCase().includes(searchTerm)
+        );
       }
 
-      const queryString = queryParams.toString();
-      const url = queryString ? `/products?${queryString}` : '/products';
-
-      const response = await apiRequest(url);
-
-      if (response.success) {
-        // Transform backend data to frontend format
-        const transformedData = response.data.map(product => ({
-          id: product.id,
-          libelle: product.libelle,
-          description: product.description,
-          prix: product.prix,
-          categorie: product.category_name || 'Non catégorisé',
-          images: [product.image_url || '/placeholder-image.jpg'],
-          stock: 50, // Default stock since not in backend
-          featured: false // Default featured status
-        }));
-
-        return {
-          success: true,
-          data: transformedData
-        };
+      if (filters.category && filters.category !== '') {
+        transformedData = transformedData.filter(product => 
+          product.categorie === filters.category
+        );
       }
 
-      return response;
+      // Client-side sorting is handled separately in the calling code
+      return {
+        success: true,
+        data: transformedData
+      };
 
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -83,13 +125,14 @@ export const productsAPI = {
       if (response.success) {
         // Transform backend data to frontend format
         const product = response.data;
+
         const transformedData = {
           id: product.id,
           libelle: product.libelle,
           description: product.description,
-          prix: product.prix,
+          prix: parseFloat(product.prix),
           categorie: product.category_name || 'Non catégorisé',
-          images: [product.image_url || '/placeholder-image.jpg'],
+          images: parseImageUrls(product.image_url),
           stock: 50, // Default stock since not in backend
           featured: false // Default featured status
         };
@@ -204,25 +247,70 @@ export const productsAPI = {
  */
 export const categoriesAPI = {
   /**
-   * Get all categories
+   * Get all categories from local JSON file
    * @returns {Promise<Object>} Categories data
    */
   async getAllCategories() {
     try {
-      const response = await apiRequest('/categories');
-      return response;
+      // Fetch categories from local JSON file
+      const response = await fetch('/src/data/categorie.json');
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement du fichier des catégories');
+      }
+
+      const categories = await response.json();
+
+      // Transform to match expected format
+      const transformedCategories = categories.map(category => ({
+        id: category.id,
+        name: category.nom,
+        product_count: 0 // Default value since not in JSON
+      }));
+
+      return {
+        success: true,
+        data: transformedCategories
+      };
 
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      return {
-        success: false,
-        message: 'Erreur lors du chargement des catégories'
-      };
+      console.error('Error fetching categories from JSON:', error);
+      
+      // Fallback to backend if JSON fails
+      try {
+        const backendResponse = await apiRequest('/categories');
+        return backendResponse;
+      } catch (backendError) {
+        return {
+          success: false,
+          message: 'Erreur lors du chargement des catégories'
+        };
+      }
     }
   },
 
   /**
-   * Create a new category
+   * Get category names for filtering
+   * @returns {Promise<Array>} Array of category names
+   */
+  async getCategoryNames() {
+    try {
+      const response = await this.getAllCategories();
+      
+      if (response.success) {
+        return response.data.map(category => category.name);
+      }
+      
+      return [];
+
+    } catch (error) {
+      console.error('Error getting category names:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Create a new category (backend only)
    * @param {Object} categoryData - Category data
    * @returns {Promise<Object>} Created category data
    */

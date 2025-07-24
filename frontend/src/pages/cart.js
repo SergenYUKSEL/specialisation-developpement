@@ -6,6 +6,7 @@
 import { cartService, cartOperations } from '../services/cart.js';
 import { router } from '../utils/router.js';
 import { auth } from '../utils/auth.js';
+import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
 
 /**
  * Create and render the cart page
@@ -24,32 +25,12 @@ export function createCartPage() {
   
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <!-- Navigation Header -->
-      <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center space-x-3">
-              <button id="back-products" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                ← Continuer les achats
-              </button>
-              <div class="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-sm">GP</span>
-              </div>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Mon Panier
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-700 font-medium">
-                ${currentUser.firstName}
-              </span>
-              <button id="home-btn" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                Accueil
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      ${createNavbar({ 
+        currentPage: 'cart', 
+        showBackButton: true, 
+        backUrl: '/products', 
+        pageTitle: 'Mon Panier' 
+      })}
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         ${cartSummary.isEmpty ? renderEmptyCart() : renderCartContent(cartSummary)}
@@ -60,7 +41,9 @@ export function createCartPage() {
     </div>
   `;
 
-  // Initialize page functionality
+  // Initialize navbar and page functionality
+  addNavbarStyles();
+  initializeNavbar({ cartService });
   initializeCartPage();
 }
 
@@ -308,18 +291,18 @@ function renderOrderSummary(cartSummary) {
  * Initialize cart page functionality
  */
 function initializeCartPage() {
-  // Navigation
-  const backProducts = document.getElementById('back-products');
-  const homeBtn = document.getElementById('home-btn');
+  // Navigation (now handled by navbar component)
+  // const backProducts = document.getElementById('back-products');
+  // const homeBtn = document.getElementById('home-btn');
   const clearCartBtn = document.getElementById('clear-cart');
 
-  if (backProducts) {
-    backProducts.addEventListener('click', () => router.navigate('/products'));
-  }
+  // if (backProducts) {
+  //   backProducts.addEventListener('click', () => router.navigate('/products'));
+  // }
 
-  if (homeBtn) {
-    homeBtn.addEventListener('click', () => router.navigate('/'));
-  }
+  // if (homeBtn) {
+  //   homeBtn.addEventListener('click', () => router.navigate('/'));
+  // }
 
   if (clearCartBtn) {
     clearCartBtn.addEventListener('click', handleClearCart);

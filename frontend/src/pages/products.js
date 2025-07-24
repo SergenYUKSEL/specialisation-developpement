@@ -3,14 +3,16 @@
  * Displays all products with search and filtering capabilities
  */
 
-import { productsAPI } from '../services/products.js';
+import { productsAPI, categoriesAPI } from '../services/products.js';
 import { cartService, cartOperations } from '../services/cart.js';
 import { router } from '../utils/router.js';
 import { auth } from '../utils/auth.js';
+import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
 
 let currentProducts = [];
 let currentFilters = {};
 let isLoading = false;
+let availableCategories = [];
 
 /**
  * Create and render the products page
@@ -21,39 +23,12 @@ export function createProductsPage() {
   
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <!-- Navigation Header -->
-      <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center space-x-3">
-              <button id="back-home" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                ← Accueil
-              </button>
-              <div class="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-sm">GP</span>
-              </div>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Catalogue Produits
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              ${currentUser ? `
-                <button id="cart-btn" class="relative bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105">
-                  🛒 Panier
-                  <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">0</span>
-                </button>
-                <span class="text-sm text-gray-700 font-medium">
-                  ${currentUser.firstName}
-                </span>
-              ` : `
-                <button id="login-link" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                  Se connecter
-                </button>
-              `}
-            </div>
-          </div>
-        </div>
-      </nav>
+      ${createNavbar({ 
+        currentPage: 'products', 
+        showBackButton: true, 
+        backUrl: '/', 
+        pageTitle: 'Catalogue Produits' 
+      })}
 
       <!-- Filters and Search -->
       <section class="bg-white/50 backdrop-blur-sm border-b border-gray-100">
@@ -75,22 +50,11 @@ export function createProductsPage() {
             </div>
 
             <!-- Category Filter -->
-            <div class="flex flex-wrap gap-3">
-              <button data-category="" class="filter-btn active px-4 py-2 rounded-lg font-medium transition-all">
+            <div id="category-filters" class="flex flex-wrap gap-3">
+              <button data-category="" class="filter-btn active px-4 py-2 rounded-lg font-medium transition-all bg-indigo-600 text-white border border-indigo-600">
                 Tout
               </button>
-              <button data-category="Électronique" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all">
-                Électronique
-              </button>
-              <button data-category="Sport" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all">
-                Sport
-              </button>
-              <button data-category="Ameublement" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all">
-                Ameublement
-              </button>
-              <button data-category="Alimentation" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all">
-                Alimentation
-              </button>
+              <!-- Categories will be loaded dynamically -->
             </div>
 
             <!-- Sort Options -->
@@ -136,31 +100,104 @@ export function createProductsPage() {
     </div>
   `;
 
-  // Initialize page functionality
+  // Initialize navbar and page functionality
+  addNavbarStyles();
+  initializeNavbar({ cartService });
   initializeProductsPage();
+  loadCategories();
   loadProducts();
+}
+
+/**
+ * Load and display categories from JSON file
+ */
+async function loadCategories() {
+  try {
+    const response = await categoriesAPI.getAllCategories();
+    
+    if (response.success) {
+      availableCategories = response.data;
+      renderCategoryFilters();
+    } else {
+      console.error('Error loading categories:', response.message);
+    }
+
+  } catch (error) {
+    console.error('Error loading categories:', error);
+  }
+}
+
+/**
+ * Render category filter buttons
+ */
+function renderCategoryFilters() {
+  const categoryFilters = document.getElementById('category-filters');
+  
+  if (!categoryFilters) return;
+
+  // Keep the "Tout" button and add category buttons
+  const categoryButtons = availableCategories.map(category => `
+    <button data-category="${category.name}" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">
+      ${category.name}
+    </button>
+  `).join('');
+
+  // Add category buttons after the "Tout" button
+  const toutButton = categoryFilters.querySelector('[data-category=""]');
+  if (toutButton) {
+    toutButton.insertAdjacentHTML('afterend', categoryButtons);
+  }
+
+  // Re-initialize category filter events
+  initializeCategoryFilters();
+}
+
+/**
+ * Initialize category filter events
+ */
+function initializeCategoryFilters() {
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Update active state
+      filterBtns.forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+        b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+      });
+      
+      btn.classList.add('active');
+      btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+      btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+
+      // Apply filter
+      const category = btn.dataset.category;
+      currentFilters.category = category || undefined;
+      loadProducts();
+    });
+  });
 }
 
 /**
  * Initialize products page functionality
  */
 function initializeProductsPage() {
-  // Navigation
-  const backHome = document.getElementById('back-home');
-  const cartBtn = document.getElementById('cart-btn');
-  const loginLink = document.getElementById('login-link');
+  // Navigation (now handled by navbar component)
+  // const backHome = document.getElementById('back-home');
+  // const cartBtn = document.getElementById('cart-btn');
+  // const loginLink = document.getElementById('login-link');
 
-  if (backHome) {
-    backHome.addEventListener('click', () => router.navigate('/'));
-  }
+  // if (backHome) {
+  //   backHome.addEventListener('click', () => router.navigate('/'));
+  // }
 
-  if (cartBtn) {
-    cartBtn.addEventListener('click', () => router.navigate('/cart'));
-  }
+  // if (cartBtn) {
+  //   cartBtn.addEventListener('click', () => router.navigate('/cart'));
+  // }
 
-  if (loginLink) {
-    loginLink.addEventListener('click', () => router.navigate('/login'));
-  }
+  // if (loginLink) {
+  //   loginLink.addEventListener('click', () => router.navigate('/login'));
+  // }
 
   // Search functionality
   const searchInput = document.getElementById('search-input');
@@ -174,21 +211,6 @@ function initializeProductsPage() {
     }, 300);
   });
 
-  // Category filters
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Update active state
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      // Apply filter
-      const category = btn.dataset.category;
-      currentFilters.category = category || undefined;
-      loadProducts();
-    });
-  });
-
   // Sort functionality
   const sortSelect = document.getElementById('sort-select');
   sortSelect.addEventListener('change', (e) => {
@@ -196,9 +218,9 @@ function initializeProductsPage() {
     loadProducts();
   });
 
-  // Cart listener
-  cartService.addListener(updateCartCounter);
-  updateCartCounter(cartService.getSummary());
+  // Cart listener (now handled by navbar)
+  // cartService.addListener(updateCartCounter);
+  // updateCartCounter(cartService.getSummary());
 }
 
 /**
@@ -343,15 +365,15 @@ function displayProducts(products) {
 }
 
 /**
- * Update cart counter in navigation
+ * Update cart counter in navigation (now handled by navbar component)
  */
-function updateCartCounter(cartSummary) {
-  const cartCount = document.getElementById('cart-count');
-  if (cartCount) {
-    cartCount.textContent = cartSummary.itemCount;
-    cartCount.style.display = cartSummary.itemCount > 0 ? 'flex' : 'none';
-  }
-}
+// function updateCartCounter(cartSummary) {
+//   const cartCount = document.getElementById('cart-count');
+//   if (cartCount) {
+//     cartCount.textContent = cartSummary.itemCount;
+//     cartCount.style.display = cartSummary.itemCount > 0 ? 'flex' : 'none';
+//   }
+// }
 
 /**
  * Show/hide loading state
