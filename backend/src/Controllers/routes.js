@@ -4,6 +4,7 @@ import { CategoryController } from "./CategoryController.js";
 import { ProductController } from "./ProductController.js";
 import { upload } from "../config/uploadConfig.js";
 import { authMiddleware } from "../config/auth.js";
+import {StatisticsController} from "./StatisticsController.js";
 
 const router = Router();
 
@@ -27,6 +28,8 @@ router.put(
   ProductController.update
 );
 router.delete("/products/:id", authMiddleware, ProductController.delete);
+
+router.get("/statistics/categories", StatisticsController.getCategoriesMetrics);
 
 router.get("/categories", CategoryController.getAll);
 router.get("/categories/:id", CategoryController.getOne);
