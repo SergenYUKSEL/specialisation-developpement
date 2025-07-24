@@ -252,40 +252,12 @@ export const categoriesAPI = {
    */
   async getAllCategories() {
     try {
-      // Fetch categories from local JSON file
-      const response = await fetch('/src/data/categorie.json');
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement du fichier des catégories');
-      }
-
-      const categories = await response.json();
-
-      // Transform to match expected format
-      const transformedCategories = categories.map(category => ({
-        id: category.id,
-        name: category.nom,
-        product_count: 0 // Default value since not in JSON
-      }));
-
-      return {
-        success: true,
-        data: transformedCategories
-      };
-
-    } catch (error) {
-      console.error('Error fetching categories from JSON:', error);
-      
-      // Fallback to backend if JSON fails
-      try {
-        const backendResponse = await apiRequest('/categories');
-        return backendResponse;
-      } catch (backendError) {
-        return {
-          success: false,
-          message: 'Erreur lors du chargement des catégories'
-        };
-      }
+      const res = await fetch('http://localhost:3000/api/categories');
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, message: 'Erreur chargement catégories' };
     }
   },
 
@@ -337,6 +309,40 @@ export const categoriesAPI = {
  * Statistics API for dashboard
  */
 export const statsAPI = {
+  /**
+   * Get category statistics from backend
+   * @returns {Promise<Object>} Category statistics data
+   */
+  async getCategoryStats() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/statistics/categories`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        data: data
+      };
+
+    } catch (error) {
+      console.error('Error fetching category statistics:', error);
+      return {
+        success: false,
+        message: 'Erreur lors du chargement des statistiques de catégories',
+        error: error.message
+      };
+    }
+  },
+
   /**
    * Get products statistics
    * @returns {Promise<Object>} Statistics data

@@ -73,7 +73,7 @@ export function createStatisticsPage() {
               </div>
               <div class="bg-white rounded-lg p-4 border border-gray-200 font-mono text-sm break-all">
                 <span id="api-url" class="text-gray-800">
-                  ${window.location.origin}/api/statistics/categories
+                  http://localhost:3000/api/statistics/categories
                 </span>
               </div>
             </div>
@@ -163,7 +163,7 @@ export function createStatisticsPage() {
               <div>
                 <h4 class="font-semibold text-gray-900 mb-3">JavaScript / Fetch API</h4>
                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                  <pre class="text-green-400 font-mono text-sm"><code>fetch('${window.location.origin}/api/statistics/categories')
+                  <pre class="text-green-400 font-mono text-sm"><code>fetch('http://localhost:3000/api/statistics/categories')
   .then(response => response.json())
   .then(data => {
     console.log('Statistiques:', data);
@@ -177,7 +177,7 @@ export function createStatisticsPage() {
                 <h4 class="font-semibold text-gray-900 mb-3">cURL</h4>
                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                   <pre class="text-green-400 font-mono text-sm"><code>curl -X GET \\
-  "${window.location.origin}/api/statistics/categories" \\
+  "http://localhost:3000/api/statistics/categories" \\
   -H "Accept: application/json"</code></pre>
                 </div>
               </div>
@@ -294,30 +294,47 @@ async function loadStatistics() {
  */
 function renderVisualStats(data) {
   const container = document.getElementById('visual-stats');
+  
+  if (!data || data.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-8 text-gray-500">
+        <p>Aucune donnée de catégorie disponible</p>
+      </div>
+    `;
+    return;
+  }
+
   const totalProducts = data.reduce((sum, cat) => sum + cat.compte, 0);
 
-  container.innerHTML = data.map(category => {
-    const percentage = Math.round((category.compte / totalProducts) * 100);
-    const colors = {
-      'Électronique': 'from-blue-500 to-blue-600',
-      'Sport': 'from-green-500 to-green-600', 
-      'Ameublement': 'from-orange-500 to-orange-600',
-      'Alimentation': 'from-red-500 to-red-600'
-    };
+  // Couleurs dynamiques pour les catégories
+  const colorPalette = [
+    'from-blue-500 to-blue-600',
+    'from-green-500 to-green-600', 
+    'from-orange-500 to-orange-600',
+    'from-red-500 to-red-600',
+    'from-purple-500 to-purple-600',
+    'from-indigo-500 to-indigo-600',
+    'from-pink-500 to-pink-600',
+    'from-teal-500 to-teal-600'
+  ];
+
+  container.innerHTML = data.map((category, index) => {
+    const percentage = totalProducts > 0 ? Math.round((category.compte / totalProducts) * 100) : 0;
+    const colorClass = colorPalette[index % colorPalette.length];
 
     return `
       <div class="bg-white/60 rounded-xl p-6 border border-gray-100 hover:shadow-lg transition-all">
         <div class="text-center">
-          <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${colors[category.nom] || 'from-gray-500 to-gray-600'} rounded-full flex items-center justify-center">
+          <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${colorClass} rounded-full flex items-center justify-center">
             <span class="text-2xl font-bold text-white">${category.compte}</span>
           </div>
           <h4 class="font-semibold text-gray-900 mb-2">${category.nom}</h4>
-          <div class="text-2xl font-bold text-gray-700 mb-1">${category.compte}</div>
+          <div class="text-2xl font-bold text-gray-700 mb-1">${category.compte} produits</div>
           <div class="text-sm text-gray-500">${percentage}% du total</div>
           
           <!-- Progress Bar -->
           <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
-            <div class="bg-gradient-to-r ${colors[category.nom] || 'from-gray-500 to-gray-600'} h-2 rounded-full transition-all duration-1000" style="width: ${percentage}%"></div>
+            <div class="bg-gradient-to-r ${colorClass} h-2 rounded-full transition-all duration-1000" style="width: ${percentage}%"></div>
           </div>
         </div>
       </div>

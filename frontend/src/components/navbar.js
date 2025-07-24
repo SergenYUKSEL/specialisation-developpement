@@ -109,14 +109,6 @@ export function createNavbar(options = {}) {
                 </svg>
                 Dashboard
               </a>
-              <a href="ajouter-produit.html" id="nav-ajouter-produit-link" class="nav-link ${
-                currentPage === "ajouter-produit" ? "active" : ""
-              } text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
-                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h4a2 2 0 002-2V7a2 2 0 00-2-2h-4a2 2 0 00-2 2m6 0V17"></path>
-                </svg>
-                Ajouter produit
-              </a>
             </div>
           `
               : ""
@@ -233,9 +225,6 @@ export function createNavbar(options = {}) {
             </a>
             <a href="#" id="nav-mobile-dashboard" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors">
               Dashboard
-            </a>
-             <a href="#" id="nav-mobile-ajouter-produit" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors">
-              Ajouter produit
             </a>
             <hr class="my-2">
             <button id="nav-mobile-logout" class="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors">
@@ -377,7 +366,6 @@ export function initializeNavbar(options = {}) {
     { id: "nav-mobile-cart", url: "/cart" },
     { id: "nav-mobile-stats", url: "/statistics" },
     { id: "nav-mobile-dashboard", url: "/dashboard" },
-    { id: "nav-mobile-ajouter-produit", url: "/ajouter-produit" },
     { id: "nav-mobile-login", url: "/login" },
     { id: "nav-mobile-register", url: "/register" },
   ];
@@ -452,3 +440,4 @@ export function addNavbarStyles() {
   `;
   document.head.appendChild(style);
 }
+ 

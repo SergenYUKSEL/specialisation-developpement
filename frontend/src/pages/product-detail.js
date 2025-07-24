@@ -8,9 +8,28 @@ import { cartService, cartOperations } from '../services/cart.js';
 import { router } from '../utils/router.js';
 import { auth } from '../utils/auth.js';
 import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
+import { showProductFormModal } from '../components/product-form-modal.js';
 
 let currentProduct = null;
 let currentImageIndex = 0;
+
+function getPlaceholderImage() {
+  return '/placeholder.png'; // Place ce fichier dans public/ ou adapte l'URL
+}
+
+function parseImageUrls(imageUrls) {
+  if (!imageUrls) return [getPlaceholderImage()];
+  if (Array.isArray(imageUrls)) {
+    const urls = imageUrls
+      .filter(url => typeof url === 'string' && url.trim() !== '')
+      .map(url => url.startsWith('http') ? url : `http://localhost:3000/images/${url}`);
+    return urls.length > 0 ? urls : [getPlaceholderImage()];
+  }
+  if (typeof imageUrls === 'string' && imageUrls.trim() !== '') {
+    return [imageUrls.startsWith('http') ? imageUrls : `http://localhost:3000/images/${imageUrls}`];
+  }
+  return [getPlaceholderImage()];
+}
 
 /**
  * Create and render the product detail page
@@ -29,34 +48,25 @@ export function createProductDetailPage(productId) {
     </div>
   `;
 
-  // Load product data
   loadProduct(productId);
 }
 
-/**
- * Load product data from API
- */
 async function loadProduct(productId) {
   try {
     const response = await productsAPI.getProductById(productId);
-
     if (response.success) {
       currentProduct = response.data;
-      currentImageIndex = 0;
+      // Correction : transformer image_url en tableau d'URLs utilisables
+      currentProduct.images = parseImageUrls(currentProduct.image_url);
       renderProductDetail();
     } else {
-      renderNotFound();
+      renderError();
     }
-
   } catch (error) {
-    console.error('Error loading product:', error);
     renderError();
   }
 }
 
-/**
- * Render the product detail page
- */
 function renderProductDetail() {
   const app = document.getElementById('app');
   const currentUser = auth.getCurrentUser();
@@ -70,175 +80,86 @@ function renderProductDetail() {
         backUrl: '/products', 
         pageTitle: 'Détail Produit' 
       })}
-
-      <!-- Product Detail -->
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <!-- Image Gallery -->
-          <div class="space-y-4">
-            <!-- Main Image -->
-            <div class="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
-              <img 
-                id="main-image"
-                src="${currentProduct.images[currentImageIndex]}" 
-                alt="${currentProduct.libelle}"
-                class="w-full h-full object-cover"
-              >
-              ${currentProduct.featured ? `
-                <div class="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-2 rounded-lg text-sm font-bold">
-                  ⭐ Produit Vedette
-                </div>
-              ` : ''}
-              
-              <!-- Image Navigation -->
+      <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col lg:flex-row gap-8">
+          <!-- Images & Gallery -->
+          <div class="flex-1 flex flex-col items-center">
+            <div class="relative w-72 h-72 rounded-xl overflow-hidden bg-gray-100 mb-4">
+              <img src="${currentProduct.images[0]}" alt="${currentProduct.libelle}" class="w-full h-full object-cover" />
               ${currentProduct.images.length > 1 ? `
-                <button id="prev-image" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm text-gray-700 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg">
-                  ←
+                <button id="prev-image" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white">
+                  <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button id="next-image" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm text-gray-700 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg">
-                  →
+                <button id="next-image" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white">
+                  <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
               ` : ''}
             </div>
-
-            <!-- Thumbnail Images -->
-            ${currentProduct.images.length > 1 ? `
-              <div class="flex gap-3 overflow-x-auto pb-2">
-                ${currentProduct.images.map((image, index) => `
-                  <button 
-                    onclick="changeImage(${index})"
-                    class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${index === currentImageIndex ? 'border-indigo-500' : 'border-gray-200 hover:border-gray-300'}"
-                  >
-                    <img src="${image}" alt="Vue ${index + 1}" class="w-full h-full object-cover">
+            <div class="flex gap-2 mt-2">
+              ${currentProduct.images.map((img, idx) => `
+                <button class="w-12 h-12 rounded-lg overflow-hidden border-2 ${idx === currentImageIndex ? 'border-indigo-600' : 'border-transparent'} focus:outline-none" data-image-idx="${idx}">
+                  <img src="${img}" alt="Miniature" class="w-full h-full object-cover" />
                   </button>
                 `).join('')}
               </div>
-            ` : ''}
           </div>
-
-          <!-- Product Info -->
-          <div class="space-y-6">
-            <!-- Category -->
+          <!-- Infos produit -->
+          <div class="flex-1 flex flex-col justify-between">
             <div>
-              <span class="inline-block bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">
+              <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-medium mb-2">
                 ${currentProduct.categorie}
               </span>
-            </div>
-
-            <!-- Title and Price -->
-            <div>
-              <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
                 ${currentProduct.libelle}
-              </h1>
-              <div class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                ${cartService.formatPrice(currentProduct.prix)}
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="prose max-w-none">
-              <p class="text-gray-600 text-lg leading-relaxed">
+              </h2>
+              <p class="text-gray-600 mb-4">
                 ${currentProduct.description}
               </p>
+              <div class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                ${cartService.formatPrice(currentProduct.prix)}
             </div>
-
-            <!-- Stock Info -->
-            <div class="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">Disponibilité :</span>
-                <div class="flex items-center">
-                  <div class="w-3 h-3 rounded-full ${currentProduct.stock > 10 ? 'bg-green-500' : currentProduct.stock > 0 ? 'bg-orange-500' : 'bg-red-500'} mr-2"></div>
-                  <span class="font-medium ${currentProduct.stock > 10 ? 'text-green-700' : currentProduct.stock > 0 ? 'text-orange-700' : 'text-red-700'}">
-                    ${currentProduct.stock > 10 ? 'En stock' : currentProduct.stock > 0 ? `${currentProduct.stock} restant(s)` : 'Rupture de stock'}
-                  </span>
-                </div>
+              <div class="text-sm text-gray-500 mb-4">
+                Stock: ${currentProduct.stock}
               </div>
             </div>
+            <div class="space-y-4 mt-6">
+              <!-- Bouton Ajouter au panier (toujours visible) -->
+              <button 
+                onclick="addToCart(${currentProduct.id})"
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium ${cartService.isInCart(currentProduct.id) ? 'opacity-60 cursor-not-allowed' : ''}"
+                ${cartService.isInCart(currentProduct.id) ? 'disabled' : ''}
+              >
+                ${cartService.isInCart(currentProduct.id) ? '✓ Dans le panier' : '🛒 Ajouter au panier'}
+              </button>
 
-            <!-- Quantity and Add to Cart -->
-            ${currentUser ? `
-              <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg">
-                <div class="space-y-4">
-                  <!-- Quantity Selector -->
-                  <div class="flex items-center space-x-4">
-                    <label class="text-gray-700 font-medium">Quantité :</label>
-                    <div class="flex items-center border border-gray-300 rounded-lg">
-                      <button id="qty-minus" class="px-3 py-2 hover:bg-gray-100 transition-colors" ${currentProduct.stock === 0 ? 'disabled' : ''}>-</button>
-                      <input 
-                        id="quantity" 
-                        type="number" 
-                        value="1" 
-                        min="1" 
-                        max="${currentProduct.stock}"
-                        class="w-16 text-center border-0 focus:ring-0 bg-transparent"
-                        ${currentProduct.stock === 0 ? 'disabled' : ''}
-                      >
-                      <button id="qty-plus" class="px-3 py-2 hover:bg-gray-100 transition-colors" ${currentProduct.stock === 0 ? 'disabled' : ''}>+</button>
-                    </div>
-                  </div>
-
-                  <!-- Add to Cart Button -->
+              <!-- Boutons de gestion (modification et suppression) -->
+              ${currentUser ? `
+                <div class="flex gap-3">
                   <button 
-                    id="add-to-cart"
-                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    ${currentProduct.stock === 0 ? 'disabled' : ''}
+                    id="edit-product-btn" 
+                    class="flex-1 bg-white border border-indigo-600 text-indigo-700 px-4 py-3 rounded-lg hover:bg-indigo-50 transition-all font-medium flex items-center justify-center"
                   >
-                    ${currentProduct.stock === 0 ? '❌ Rupture de stock' : cartService.isInCart(currentProduct.id) ? '✓ Ajouter de nouveau' : '🛒 Ajouter au panier'}
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Modifier
                   </button>
-
-                  ${cartService.isInCart(currentProduct.id) ? `
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div class="flex items-center">
-                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span class="text-green-700 text-sm">
-                          Ce produit est déjà dans votre panier (${cartService.getItemQuantity(currentProduct.id)})
-                        </span>
-                      </div>
-                    </div>
-                  ` : ''}
+                  
+                  <button 
+                    id="delete-product-btn" 
+                    class="flex-1 bg-white border border-red-600 text-red-700 px-4 py-3 rounded-lg hover:bg-red-50 transition-all font-medium flex items-center justify-center"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Supprimer
+                  </button>
                 </div>
-              </div>
-            ` : `
-              <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg">
-                <p class="text-gray-600 mb-4">Connectez-vous pour ajouter ce produit à votre panier</p>
-                <button 
-                  onclick="router.navigate('/login')"
-                  class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all"
-                >
-                  Se connecter
-                </button>
-              </div>
-            `}
-
-            <!-- Additional Info -->
-            <div class="bg-gray-50 rounded-xl p-6 space-y-3">
-              <h3 class="font-semibold text-gray-900 mb-3">Informations produit</h3>
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span class="text-gray-600">Catégorie :</span>
-                  <span class="font-medium ml-2">${currentProduct.categorie}</span>
-                </div>
-                <div>
-                  <span class="text-gray-600">ID Produit :</span>
-                  <span class="font-medium ml-2">#${currentProduct.id}</span>
-                </div>
-                <div>
-                  <span class="text-gray-600">Stock :</span>
-                  <span class="font-medium ml-2">${currentProduct.stock} unités</span>
-                </div>
-                <div>
-                  <span class="text-gray-600">État :</span>
-                  <span class="font-medium ml-2">${currentProduct.featured ? 'Produit vedette' : 'Standard'}</span>
-                </div>
-              </div>
+              ` : ''}
             </div>
           </div>
         </div>
       </main>
-
-      <!-- Toast Notifications -->
       <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
     </div>
   `;
@@ -249,9 +170,6 @@ function renderProductDetail() {
   initializeProductDetail();
 }
 
-/**
- * Initialize product detail page functionality
- */
 function initializeProductDetail() {
   // Navigation (now handled by navbar component)
   // const backProducts = document.getElementById('back-products');
@@ -311,6 +229,35 @@ function initializeProductDetail() {
     addToCartBtn.addEventListener('click', handleAddToCart);
   }
 
+  // Bouton modifier
+  const editBtn = document.getElementById('edit-product-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      // Vérifier que l'utilisateur est connecté
+      const currentUser = auth.getCurrentUser();
+      if (!currentUser) {
+        showToast('Vous devez être connecté pour modifier un produit', 'error');
+        router.navigate('/login');
+        return;
+      }
+
+      showProductFormModal({ 
+        mode: 'edit', 
+        product: { ...currentProduct, images: currentProduct.image_url }, 
+        onSuccess: () => {
+          showToast('Produit modifié avec succès !', 'success');
+          setTimeout(() => window.location.reload(), 1000);
+        }
+      });
+    });
+  }
+
+  // Bouton supprimer
+  const deleteBtn = document.getElementById('delete-product-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', handleDeleteProduct);
+  }
+
   // Cart listener
   cartService.addListener(updateCartCounter);
 }
@@ -360,6 +307,91 @@ async function handleAddToCart() {
     renderProductDetail();
   } else {
     showToast(result.message, 'error');
+  }
+}
+
+/**
+ * Handle delete product action
+ */
+async function handleDeleteProduct() {
+  // Vérifier que l'utilisateur est connecté
+  const currentUser = auth.getCurrentUser();
+  if (!currentUser) {
+    showToast('Vous devez être connecté pour supprimer un produit', 'error');
+    router.navigate('/login');
+    return;
+  }
+
+  // Confirmation de suppression avec double vérification
+  const firstConfirm = confirm(
+    `Êtes-vous sûr de vouloir supprimer le produit "${currentProduct.libelle}" ?\n\nCette action est irréversible.`
+  );
+
+  if (!firstConfirm) {
+    return;
+  }
+
+  const secondConfirm = confirm(
+    `ATTENTION: Vous allez définitivement supprimer "${currentProduct.libelle}".\n\nTapez le nom du produit pour confirmer ou cliquez sur Annuler.`
+  );
+
+  if (!secondConfirm) {
+    return;
+  }
+
+  try {
+    // Désactiver le bouton pendant la suppression
+    const deleteBtn = document.getElementById('delete-product-btn');
+    if (deleteBtn) {
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = `
+        <svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Suppression...
+      `;
+    }
+
+    const response = await productsAPI.deleteProduct(currentProduct.id);
+
+    if (response.success) {
+      showToast('Produit supprimé avec succès !', 'success');
+      
+      // Rediriger vers la liste des produits après 1.5 secondes
+      setTimeout(() => {
+        router.navigate('/products');
+      }, 1500);
+      
+    } else {
+      throw new Error(response.message || 'Erreur lors de la suppression');
+    }
+
+  } catch (error) {
+    console.error('Erreur lors de la suppression du produit:', error);
+    
+    // Gestion spécifique des erreurs d'authentification
+    if (error.message && error.message.includes('Token manquant')) {
+      showToast('Session expirée. Veuillez vous reconnecter.', 'error');
+      setTimeout(() => {
+        auth.logout();
+        router.navigate('/login');
+      }, 2000);
+      return;
+    }
+    
+    showToast('Erreur lors de la suppression du produit', 'error');
+    
+    // Réactiver le bouton en cas d'erreur
+    const deleteBtn = document.getElementById('delete-product-btn');
+    if (deleteBtn) {
+      deleteBtn.disabled = false;
+      deleteBtn.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+        Supprimer
+      `;
+    }
   }
 }
 
@@ -460,6 +492,18 @@ function renderError() {
 }
 
 /**
- * Global function for onclick handlers
+ * Global functions for onclick handlers
  */
-window.changeImage = changeImage; 
+window.changeImage = changeImage;
+
+window.addToCart = async function(productId) {
+  const result = await cartOperations.addToCart(currentProduct, 1);
+  
+  if (result.success) {
+    showToast(result.message, 'success');
+    // Re-render to update UI
+    renderProductDetail();
+  } else {
+    showToast(result.message, 'error');
+  }
+}; 

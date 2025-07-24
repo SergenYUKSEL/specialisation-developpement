@@ -33,32 +33,30 @@ export function createProductsPage() {
       <!-- Filters and Search -->
       <section class="bg-white/50 backdrop-blur-sm border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div class="flex flex-col lg:flex-row gap-6 items-center">
-            <!-- Search -->
-            <div class="flex-1 max-w-md">
-              <div class="relative">
+          <div class="flex flex-col gap-4 lg:gap-6">
+            <!-- Search (centrée au-dessus) -->
+            <div class="w-full flex justify-center">
+              <div class="relative w-full max-w-full sm:max-w-md lg:max-w-2xl xl:max-w-3xl">
                 <input
                   type="text"
                   id="search-input"
                   placeholder="Rechercher des produits..."
-                  class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm"
+                  class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm max-w-full sm:max-w-md lg:max-w-2xl xl:max-w-3xl"
                 >
-                <svg class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </div>
             </div>
-
-            <!-- Category Filter -->
-            <div id="category-filters" class="flex flex-wrap gap-3">
+            <!-- Category Filter (en-dessous, centrée) -->
+            <div id="category-filters" class="flex flex-wrap gap-3 justify-center">
               <button data-category="" class="filter-btn active px-4 py-2 rounded-lg font-medium transition-all bg-indigo-600 text-white border border-indigo-600">
                 Tout
               </button>
               <!-- Categories will be loaded dynamically -->
             </div>
-
-            <!-- Sort Options -->
-            <div>
+            <!-- Sort Options (à droite sur desktop, en-dessous sur mobile) -->
+            <div class="flex justify-end">
               <select id="sort-select" class="px-4 py-2 border border-gray-300 rounded-lg bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500">
                 <option value="name-asc">Nom (A-Z)</option>
                 <option value="name-desc">Nom (Z-A)</option>
@@ -132,23 +130,42 @@ async function loadCategories() {
  */
 function renderCategoryFilters() {
   const categoryFilters = document.getElementById('category-filters');
-  
   if (!categoryFilters) return;
 
-  // Keep the "Tout" button and add category buttons
-  const categoryButtons = availableCategories.map(category => `
+  // Nettoyer les anciens filtres (sauf le bouton "Tout")
+  categoryFilters.innerHTML = `
+    <button data-category="" class="filter-btn active px-4 py-2 rounded-lg font-medium transition-all bg-indigo-600 text-white border border-indigo-600">
+      Tout
+    </button>
+  `;
+
+  // Séparer les 5 premières catégories et le reste
+  const maxVisible = 5;
+  const visibleCategories = availableCategories.slice(0, maxVisible);
+  const otherCategories = availableCategories.slice(maxVisible);
+
+  // Boutons pour les 5 premières catégories
+  const categoryButtons = visibleCategories.map(category => `
     <button data-category="${category.name}" class="filter-btn px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">
       ${category.name}
     </button>
   `).join('');
 
-  // Add category buttons after the "Tout" button
-  const toutButton = categoryFilters.querySelector('[data-category=""]');
-  if (toutButton) {
-    toutButton.insertAdjacentHTML('afterend', categoryButtons);
+  // Select pour les autres catégories
+  let selectHtml = '';
+  if (otherCategories.length > 0) {
+    selectHtml = `
+      <select id="category-select" class="filter-select px-4 py-2 rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+        <option value="">...</option>
+        ${otherCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
+      </select>
+    `;
   }
 
-  // Re-initialize category filter events
+  // Ajouter les boutons et le select
+  categoryFilters.insertAdjacentHTML('beforeend', categoryButtons + selectHtml);
+
+  // Réinitialiser les événements
   initializeCategoryFilters();
 }
 
@@ -157,6 +174,8 @@ function renderCategoryFilters() {
  */
 function initializeCategoryFilters() {
   const filterBtns = document.querySelectorAll('.filter-btn');
+  const filterSelect = document.getElementById('category-select');
+
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       // Update active state
@@ -165,10 +184,12 @@ function initializeCategoryFilters() {
         b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
         b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
       });
-      
       btn.classList.add('active');
       btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
       btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+
+      // Reset select
+      if (filterSelect) filterSelect.value = '';
 
       // Apply filter
       const category = btn.dataset.category;
@@ -176,6 +197,21 @@ function initializeCategoryFilters() {
       loadProducts();
     });
   });
+
+  if (filterSelect) {
+    filterSelect.addEventListener('change', (e) => {
+      // Désactiver tous les boutons
+      filterBtns.forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+        b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+      });
+      // Appliquer le filtre
+      const category = e.target.value;
+      currentFilters.category = category || undefined;
+      loadProducts();
+    });
+  }
 }
 
 /**
