@@ -1,10 +1,13 @@
 import { renderHeader, logoutHeaderEvents } from "../components/header.js";
 import { renderFooter } from "../components/footer.js";
+import { createNavbar } from "../components/navbar.js";
 // import { redirectIfNotAuthenticated, headers } from "../utils/auth.js";
 
 // redirectIfNotAuthenticated();
 
-document.getElementById("header").innerHTML = renderHeader();
+document.getElementById("header").innerHTML = createNavbar({
+  currentPage: "ajouter-produit",
+});
 logoutHeaderEvents();
 document.getElementById("footer").innerHTML = renderFooter();
 
