@@ -12,7 +12,14 @@ import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/n
  */
 export function createHomePage() {
   const app = document.getElementById('app');
-  const currentUser = auth.getCurrentUser();
+  let currentUser = null;
+  
+  try {
+    currentUser = auth.getCurrentUser();
+  } catch (error) {
+    console.warn('Error getting current user:', error);
+    currentUser = null;
+  }
   
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -241,7 +248,14 @@ export function createHomePage() {
  * Initialize home page navigation
  */
 function initializeHomeNavigation() {
-  const currentUser = auth.getCurrentUser();
+  let currentUser = null;
+  
+  try {
+    currentUser = auth.getCurrentUser();
+  } catch (error) {
+    console.warn('Error getting current user in navigation:', error);
+    currentUser = null;
+  }
 
   // Navigation buttons (now handled by navbar component)
   // const loginBtn = document.getElementById('login-btn');
