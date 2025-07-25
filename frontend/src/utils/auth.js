@@ -18,8 +18,22 @@ export const validation = {
    * @returns {boolean} True if valid email format
    */
   isValidEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+    const trimmedEmail = email.trim();
+    
+    // Vérifications de base
+    if (!trimmedEmail || !trimmedEmail.includes('@')) return false;
+    
+    // Regex classique pour email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email.trim());
+    
+    // Vérifications supplémentaires
+    if (!emailRegex.test(trimmedEmail)) return false;
+    if (trimmedEmail.includes('..')) return false; // Pas de points consécutifs
+    if (trimmedEmail.startsWith('.') || trimmedEmail.endsWith('.')) return false;
+    if (trimmedEmail.includes('@.') || trimmedEmail.includes('.@')) return false;
+    
+    return true;
   },
 
   /**
