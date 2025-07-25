@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, json } from "express";
 import { UserController } from "./UserController.js";
 import { CategoryController } from "./CategoryController.js";
 import { ProductController } from "./ProductController.js";
@@ -78,5 +78,18 @@ router.get("/csrf", authMiddleware, (req, res) => {
 
   res.status(200).json({ csrfToken: token });
 });
+
+router.post(
+  "/csp-report",
+  json({ type: ['application/csp-report', 'application/json'] }),
+  (req, res) => {
+    const report = req.body["csp-report"];
+    console.log("Rapport CSP reçu :", report);
+
+    // TODO : stocker report en base ici
+
+    res.status(204).send(); // Pas de contenu à renvoyer
+  }
+);
 
 export default router;
