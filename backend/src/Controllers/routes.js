@@ -74,7 +74,7 @@ router.get("/csrf", authMiddleware, (req, res) => {
     maxAge: 30 * 60 * 1000, // ⏳ 30 minutes
   });
 
-  res.status(200).json({ csrfToken: token });
+  // res.status(200).json({ csrfToken: token });
 });
 
 export default router;
