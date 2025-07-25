@@ -100,7 +100,7 @@ export function showProductFormModal({
             .map(
               (cat) =>
                 `<option value="${cat.name}" ${
-                  product?.category_name === cat.name ? "selected" : ""
+                  product?.categorie === cat.name ? "selected" : ""
                 }>${cat.name}</option>`
             )
             .join("");

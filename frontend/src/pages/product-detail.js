@@ -68,7 +68,7 @@ async function loadProduct(productId) {
     if (response.success) {
       currentProduct = response.data;
       // Correction : transformer image_url en tableau d'URLs utilisables
-      currentProduct.images = parseImageUrls(currentProduct.image_url);
+      currentProduct.images = parseImageUrls(currentProduct.images);
       renderProductDetail();
     } else {
       renderError();

@@ -132,7 +132,7 @@ export const productsAPI = {
           description: product.description,
           prix: parseFloat(product.prix),
           categorie: product.category_name || 'Non catégorisé',
-          images: parseImageUrls(product.image_url),
+          images: product.image_url,
           stock: 50, // Default stock since not in backend
           featured: false // Default featured status
         };
