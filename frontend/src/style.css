@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+/* Reset et base styles pour une application moderne */
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  /* Variables CSS pour la cohérence des couleurs */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-secondary: #6b7280;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  
+  /* Mode clair par défaut */
+  color: #111827;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reset global pour enlever les styles Vite par défaut */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #f9fafb; /* Gris très clair pour le fond */
+  /* Suppression du centrage forcé */
+}
+
+#app {
+  /* Suppression des contraintes de largeur et centrage */
+  width: 100%;
+  min-height: 100vh;
+  /* Suppression du padding et text-align */
+}
+
+/* Amélioration des liens */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Styles pour les boutons par défaut (si pas de classes Tailwind) */
+button:not([class*="bg-"]):not([class*="border-"]) {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:not([class*="bg-"]):not([class*="border-"]):hover {
+  background-color: var(--color-primary-hover);
+}
+
+button:not([class*="bg-"]):not([class*="border-"]):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Focus states améliorés */
+button:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Styles pour les formulaires */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Animations personnalisées */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Styles pour les messages d'état */
+.alert-success {
+  background-color: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+}
+
+.alert-error {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+/* Styles pour les filtres */
+.filter-btn {
+  background-color: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.filter-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.filter-btn.active {
+  background-color: #4f46e5;
+  color: white;
+  border-color: #4f46e5;
+}
+
+/* Styles pour la troncature de texte */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive design amélioré */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  
+  #app {
+    padding: 0;
+  }
+}
+
+/* Mode sombre (optionnel, activé par la classe dark) */
+.dark {
+  --color-primary: #6366f1;
+  --color-primary-hover: #5b21b6;
+  color: #f9fafb;
+  background-color: #111827;
+}
+
+.dark body {
+  background-color: #0f172a;
+}
+
+/* Amélioration de l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible uniquement au clavier */
+@media (pointer: fine) {
+  button:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible) {
+    outline: none;
+  }
+}

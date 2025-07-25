@@ -1,0 +1,87 @@
+CREATE DATABASE IF NOT EXISTS db_shop;
+
+- CREATE TABLE users (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	email varchar(63) NOT NULL UNIQUE CHECK(LENGTH(email) >=6 AND email LIKE '%@%.%'),
+	pseudo varchar(50) NOT NULL UNIQUE CHECK(LENGTH(pseudo) >=3),
+	password varchar(255) NOT NULL CHECK(LENGTH(password) >=8)
+	);
+	
+- CREATE TABLE categories (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	name varchar(255) NOT NULL UNIQUE,
+	product_count INT DEFAULT 0
+	);	
+	
+- CREATE TABLE products (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	libelle varchar(255),
+	description varchar(500) NOT NULL CHECK(LENGTH(description) <= 500),
+	image_url VARCHAR(500),
+    	prix DECIMAL(10,2) NOT NULL CHECK(prix >= 0),
+    	category_name varchar(255),
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_name) REFERENCES categories(name) ON DELETE SET NULL
+	);
+	
+CREATE INDEX idx_product_category ON products(category_name)
+	
+
+
+USE db_shop;
+
+-- Insertion des 5 utilisateurs
+INSERT INTO users (email, pseudo, password) VALUES
+('alice.martin@gmail.com', 'AliceM', '$2b$12$hashed_password_alice123'),
+('bob.dupont@yahoo.fr', 'BobDu', '$2b$12$hashed_password_bob456'),
+('charlie.bernard@outlook.com', 'CharlieB', '$2b$12$hashed_password_charlie789'),
+('diana.lopez@hotmail.fr', 'DianaL', '$2b$12$hashed_password_diana012'),
+('evan.moreau@gmail.com', 'EvanM', '$2b$12$hashed_password_evan345');
+
+-- Insertion des 10 catégories
+INSERT INTO categories (name, product_count) VALUES
+('Électronique', 5),
+('Vêtements', 5),
+('Maison & Jardin', 5),
+('Sports & Loisirs', 5),
+('Livres & Culture', 5),
+('Beauté & Santé', 5),
+('Automobile', 5),
+('Jouets & Enfants', 5),
+('Alimentation', 5),
+('Bijoux & Montres', 5);
+
+-- Insertion des produits
+
+-- Catégorie Automobile
+INSERT INTO products (libelle, description, image_url, prix, category_name) VALUES
+('Pneus Michelin 205/55 R16', 'Set de 4 pneus été haute performance, adhérence optimale, résistance au roulement réduite.', '[]', 389.99, 'Automobile'),
+('Dashcam Full HD', 'Caméra embarquée 1080p, vision nocturne, détection chocs, enregistrement boucle, carte SD 32Go.', '[]', 89.90, 'Automobile'),
+('Kit Outils Mécanicien 150 Pcs', 'Mallette complète clés, douilles, tournevis, pinces, niveau professionnel, garantie 5 ans.', '[]', 199.00, 'Automobile'),
+('Chargeur Auto USB-C 65W', 'Chargeur rapide double port, compatible tous appareils, LED indicateur, câble 1.5m inclus.', '[]', 34.99, 'Automobile'),
+('Housses Sièges Universelles', 'Protection sièges cuir synthétique, ajustement universel, facile installation, lavable machine.', '[]', 79.90, 'Automobile');
+
+-- Catégorie Jouets & Enfants
+INSERT INTO products (libelle, description, image_url, prix, category_name) VALUES
+('LEGO Creator Expert 2500 Pcs', 'Set construction château médiéval, figurines incluses, instructions détaillées, 8-14 ans.', '[]', 149.99, 'Jouets & Enfants'),
+('Peluche Teddy Bear Géant', 'Ours en peluche 80cm, ultra doux, bourrage hypoallergénique, lavable, norme CE.', '[]', 59.90, 'Jouets & Enfants'),
+('Jeu de Société Monopoly', 'Version classique du célèbre jeu immobilier, 2-8 joueurs, durée 1-3h, dès 8 ans.', '[]', 34.50, 'Jouets & Enfants'),
+('Trottinette 3 Roues', 'Trottinette évolutive guidon réglable, roues LED, frein arrière, charge max 50kg, 3-8 ans.', '[]', 89.00, 'Jouets & Enfants'),
+('Pâte à Modeler Set Couleurs', 'Kit 20 pots couleurs vives, outils modelage, moules, pâte non toxique, créativité infinie.', '[]', 24.99, 'Jouets & Enfants');
+
+-- Catégorie Alimentation  
+INSERT INTO products (libelle, description, image_url, prix, category_name) VALUES
+('Café Grains Arabica Premium', 'Mélange 100% Arabica torréfaction artisanale, notes fruités, origine Éthiopie, sachet 1kg.', '[]', 28.90, 'Alimentation'),
+('Miel de Lavande Bio 500g', 'Miel de Provence certifié bio, récolte artisanale, cristallisation fine, pot verre consigné.', '[]', 16.50, 'Alimentation'),
+('Chocolat Noir 85% Cacao', 'Tablette grand cru Venezuela, commerce équitable, intense et fruité, 100g emballage premium.', '[]', 8.90, 'Alimentation'),
+('Huile d\'Olive Extra Vierge', 'Première pression à froid, olives françaises, acidité <0.3%, bouteille verre 750ml.', '[]', 19.99, 'Alimentation'),
+('Thé Vert Sencha Premium', 'Thé vert japonais grade supérieur, récolte printanière, boîte métal 100g, infusion délicate.', '[]', 24.50, 'Alimentation');
+
+-- Catégorie Bijoux & Montres
+INSERT INTO products (libelle, description, image_url, prix, category_name) VALUES
+('Montre Automatique Homme', 'Mouvement mécanique visible, boîtier acier 42mm, bracelet cuir, étanchéité 50m, coffret inclus.', '[]', 299.00, 'Bijoux & Montres'),
+('Collier Argent 925 Perles', 'Chaîne fine avec perles d\'eau douce, fermoir sécurisé, longueur 45cm, écrin velours.', '[]', 89.90, 'Bijoux & Montres'),
+('Bagues Set 5 Pièces', 'Assortiment bagues fantaisie dorées, ajustables, styles variés, résistant à l\'eau, pochette incluse.', '[]', 29.99, 'Bijoux & Montres'),
+('Bracelet Homme Cuir Tressé', 'Bracelet cuir véritable tressé main, fermoir acier inoxydable, longueur ajustable 18-22cm.', '[]', 39.50, 'Bijoux & Montres'),
+('Boucles d\'Oreilles Diamant CZ', 'Puces serties zirconium cubique, plaqué or 18K, hypoallergénique, brillance diamant, coffret.', '[]', 59.90, 'Bijoux & Montres');
