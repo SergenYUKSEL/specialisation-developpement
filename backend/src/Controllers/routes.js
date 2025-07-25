@@ -24,20 +24,20 @@ router.post(
   csrfMiddleware,
   authMiddleware,
   upload.array("images", 3),
-  ProductController.create,
+  ProductController.create
 );
 router.put(
   "/products/:id",
   csrfMiddleware,
   authMiddleware,
   upload.array("newImages", 3),
-  ProductController.update,
+  ProductController.update
 );
 router.delete(
   "/products/:id",
   csrfMiddleware,
   authMiddleware,
-  ProductController.delete,
+  ProductController.delete
 );
 
 router.get("/statistics/categories", StatisticsController.getCategoriesMetrics);
@@ -48,24 +48,26 @@ router.post(
   "/categories",
   csrfMiddleware,
   authMiddleware,
-  CategoryController.create,
+  CategoryController.create
 );
 router.put(
   "/categories/:id",
   csrfMiddleware,
   authMiddleware,
-  CategoryController.update,
+  CategoryController.update
 );
 router.delete(
   "/categories/:id",
   csrfMiddleware,
   authMiddleware,
-  CategoryController.delete,
+  CategoryController.delete
 );
 
 // CSRF token
 router.get("/csrf", authMiddleware, (req, res) => {
   const token = generateCsrfToken(process.env.CSRF_SECRET);
+
+  console.log("csrf : " + token);
 
   res.cookie("csrf_token", token, {
     httpOnly: true,
@@ -74,7 +76,7 @@ router.get("/csrf", authMiddleware, (req, res) => {
     maxAge: 30 * 60 * 1000, // ⏳ 30 minutes
   });
 
-  // res.status(200).json({ csrfToken: token });
+  res.status(200).json({ csrfToken: token });
 });
 
 export default router;
