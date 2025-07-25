@@ -3,7 +3,7 @@
  * Handles communication with the backend authentication endpoints
  */
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = "http://localhost:3000/api";
 
 /**
  * Authentication API endpoints
@@ -20,12 +20,12 @@ export const authAPI = {
   async login(email, password) {
     try {
       const response = await fetch("http://localhost:3000/api/users/login", {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
-        body: JSON.stringify({ email, password })
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -33,21 +33,20 @@ export const authAPI = {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Erreur de connexion'
+          message: data.message || "Erreur de connexion",
         };
       }
 
       return {
         success: true,
         data: data,
-        message: data.message
+        message: data.message,
       };
-
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       return {
         success: false,
-        message: error.message || 'Erreur de connexion au serveur'
+        message: error.message || "Erreur de connexion au serveur",
       };
     }
   },
@@ -63,16 +62,16 @@ export const authAPI = {
   async register(userData) {
     try {
       const response = await fetch("http://localhost:3000/api/users/register", {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           email: userData.email,
           pseudo: userData.pseudo,
-          password: userData.password
-        })
+          password: userData.password,
+        }),
       });
 
       const data = await response.json();
@@ -80,21 +79,20 @@ export const authAPI = {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Erreur lors de l\'inscription'
+          message: data.message || "Erreur lors de l'inscription",
         };
       }
 
       return {
         success: true,
         data: data,
-        message: data.message
+        message: data.message,
       };
-
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       return {
         success: false,
-        message: error.message || 'Erreur lors de l\'inscription'
+        message: error.message || "Erreur lors de l'inscription",
       };
     }
   },
@@ -102,8 +100,8 @@ export const authAPI = {
   async logout() {
     try {
       const response = await fetch("http://localhost:3000/api/users/logout", {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -111,20 +109,19 @@ export const authAPI = {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Erreur lors de la déconnexion'
+          message: data.message || "Erreur lors de la déconnexion",
         };
       }
 
       return {
         success: true,
-        message: data.message
+        message: data.message,
       };
-
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       return {
         success: false,
-        message: error.message || 'Erreur lors de la déconnexion'
+        message: error.message || "Erreur lors de la déconnexion",
       };
     }
   },
@@ -136,8 +133,8 @@ export const authAPI = {
   async checkAuth() {
     try {
       const response = await fetch("http://localhost:3000/api/users/me", {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -145,25 +142,52 @@ export const authAPI = {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Non authentifié'
+          message: data.message || "Non authentifié",
         };
       }
 
       return {
         success: true,
         data: data,
-        message: data.message
+        message: data.message,
       };
-
     } catch (error) {
-      console.error('Check auth error:', error);
+      console.error("Check auth error:", error);
       return {
         success: false,
-        message: error.message || 'Erreur de vérification'
+        message: error.message || "Erreur de vérification",
       };
     }
   },
 
+  async getCsrfToken() {
+    try {
+      const response = await fetch("http://localhost:3000/api/csrf", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Non authentifié csrf",
+        };
+      }
+
+      return {
+        success: true,
+        csrfToken: data.csrfToken,
+      };
+    } catch (error) {
+      console.error("Check auth error:", error);
+      return {
+        success: false,
+        message: error.message || "Erreur de vérification",
+      };
+    }
+  },
 };
 
 /**
@@ -172,15 +196,18 @@ export const authAPI = {
  * @param {string} defaultMessage - Default error message
  * @returns {string} User-friendly error message
  */
-export function handleApiError(error, defaultMessage = 'Une erreur est survenue') {
+export function handleApiError(
+  error,
+  defaultMessage = "Une erreur est survenue"
+) {
   if (error.message) {
     return error.message;
   }
-  
-  if (typeof error === 'string') {
+
+  if (typeof error === "string") {
     return error;
   }
-  
+
   return defaultMessage;
 }
 
@@ -200,13 +227,15 @@ export function isAuthError(response) {
  * @returns {Promise<Object>} API response
  */
 export async function apiRequest(endpoint, options = {}) {
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-  
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_BASE_URL}${endpoint}`;
+
   const defaultOptions = {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    credentials: 'include', // Include cookies for authentication
+    credentials: "include", // Include cookies for authentication
   };
 
   const mergedOptions = {
@@ -220,22 +249,22 @@ export async function apiRequest(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, mergedOptions);
-    
+
     // Check if response is JSON
-    const contentType = response.headers.get('content-type');
+    const contentType = response.headers.get("content-type");
     let data = null;
-    
-    if (contentType && contentType.includes('application/json')) {
+
+    if (contentType && contentType.includes("application/json")) {
       data = await response.json();
     } else {
       // For non-JSON responses (like DELETE operations)
-      data = { message: response.ok ? 'Opération réussie' : 'Erreur serveur' };
+      data = { message: response.ok ? "Opération réussie" : "Erreur serveur" };
     }
 
     if (!response.ok) {
       // Handle authentication errors specifically
       if (response.status === 401) {
-        throw new Error('Token manquant');
+        throw new Error("Token manquant");
       }
       throw new Error(data.message || `Erreur HTTP ${response.status}`);
     }
@@ -243,15 +272,14 @@ export async function apiRequest(endpoint, options = {}) {
     return {
       success: true,
       data: data,
-      status: response.status
+      status: response.status,
     };
-
   } catch (error) {
     console.error(`API request error for ${endpoint}:`, error);
     return {
       success: false,
-      message: error.message || 'Erreur de connexion au serveur',
-      status: error.status || 500
+      message: error.message || "Erreur de connexion au serveur",
+      status: error.status || 500,
     };
   }
-} 
+}

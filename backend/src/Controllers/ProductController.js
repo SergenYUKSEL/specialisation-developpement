@@ -3,6 +3,7 @@ import { Product } from "../Entities/Product.js";
 import { Category } from "../Entities/Category.js";
 import fs from "fs";
 import path from "path";
+import { clearCsrfToken } from "../config/auth.js";
 
 export class ProductController {
   static async getAll(req, res) {
@@ -91,6 +92,9 @@ export class ProductController {
       }
 
       console.log(savedProduct);
+
+      clearCsrfToken(req, res);
+
       res.status(201).json(savedProduct);
     } catch (error) {
       console.error("Erreur lors de la création du produit:", error);
@@ -111,7 +115,7 @@ export class ProductController {
       if (!product) {
         return res.status(404).json({ message: "Produit non trouvé" });
       }
-      
+
       product.libelle = libelle ?? product.libelle;
       product.description = description ?? product.description;
       product.prix = prix ?? product.prix;
@@ -164,6 +168,8 @@ export class ProductController {
         }
       }
 
+      clearCsrfToken(req, res);
+
       res.status(200).json(savedProduct);
     } catch (error) {
       console.error("Erreur lors de la mise à jour du produit:", error);
@@ -184,21 +190,26 @@ export class ProductController {
 
       // Suppression des anciennes images
       let existingImages = [];
-      
+
       if (product.image_url) {
         try {
           // Si c'est déjà un tableau
           if (Array.isArray(product.image_url)) {
             existingImages = product.image_url;
-          } 
+          }
           // Si c'est une chaîne qui commence par 'http' ou 'https', c'est une URL directe
-          else if (typeof product.image_url === 'string' && product.image_url.startsWith('http')) {
+          else if (
+            typeof product.image_url === "string" &&
+            product.image_url.startsWith("http")
+          ) {
             // Ne pas supprimer les images externes (URLs complètes)
             existingImages = [];
-            console.log(`Image externe détectée: ${product.image_url}, pas de suppression nécessaire`);
+            console.log(
+              `Image externe détectée: ${product.image_url}, pas de suppression nécessaire`
+            );
           }
           // Si c'est une chaîne JSON
-          else if (typeof product.image_url === 'string') {
+          else if (typeof product.image_url === "string") {
             try {
               const parsed = JSON.parse(product.image_url);
               existingImages = Array.isArray(parsed) ? parsed : [parsed];
@@ -208,14 +219,14 @@ export class ProductController {
             }
           }
         } catch (error) {
-          console.error('Erreur lors du parsing des images:', error);
+          console.error("Erreur lors du parsing des images:", error);
           existingImages = [];
         }
       }
 
       // Supprimer seulement les fichiers locaux (pas les URLs complètes)
       existingImages.forEach((filename) => {
-        if (filename && !filename.startsWith('http')) {
+        if (filename && !filename.startsWith("http")) {
           const filepath = path.join("src/images", filename);
           if (fs.existsSync(filepath)) {
             fs.unlinkSync(filepath);
@@ -237,6 +248,8 @@ export class ProductController {
           await categoryRepository.save(category);
         }
       }
+
+      clearCsrfToken(req, res);
 
       console.log(`Produit ${id} supprimé`);
       res.status(200).json({ message: "Produit supprimé avec succès" });

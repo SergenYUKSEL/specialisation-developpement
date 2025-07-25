@@ -3,30 +3,41 @@
  * Displays detailed view of a single product with image gallery
  */
 
-import { productsAPI } from '../services/products.js';
-import { cartService, cartOperations } from '../services/cart.js';
-import { router } from '../utils/router.js';
-import { auth } from '../utils/auth.js';
-import { createNavbar, initializeNavbar, addNavbarStyles } from '../components/navbar.js';
-import { showProductFormModal } from '../components/product-form-modal.js';
+import { productsAPI } from "../services/products.js";
+import { cartService, cartOperations } from "../services/cart.js";
+import { router } from "../utils/router.js";
+import { auth } from "../utils/auth.js";
+import {
+  createNavbar,
+  initializeNavbar,
+  addNavbarStyles,
+} from "../components/navbar.js";
+import { showProductFormModal } from "../components/product-form-modal.js";
+import { authAPI } from "../services/api.js";
 
 let currentProduct = null;
 let currentImageIndex = 0;
 
 function getPlaceholderImage() {
-  return '/placeholder.png'; // Place ce fichier dans public/ ou adapte l'URL
+  return "/placeholder.png"; // Place ce fichier dans public/ ou adapte l'URL
 }
 
 function parseImageUrls(imageUrls) {
   if (!imageUrls) return [getPlaceholderImage()];
   if (Array.isArray(imageUrls)) {
     const urls = imageUrls
-      .filter(url => typeof url === 'string' && url.trim() !== '')
-      .map(url => url.startsWith('http') ? url : `http://localhost:3000/images/${url}`);
+      .filter((url) => typeof url === "string" && url.trim() !== "")
+      .map((url) =>
+        url.startsWith("http") ? url : `http://localhost:3000/images/${url}`
+      );
     return urls.length > 0 ? urls : [getPlaceholderImage()];
   }
-  if (typeof imageUrls === 'string' && imageUrls.trim() !== '') {
-    return [imageUrls.startsWith('http') ? imageUrls : `http://localhost:3000/images/${imageUrls}`];
+  if (typeof imageUrls === "string" && imageUrls.trim() !== "") {
+    return [
+      imageUrls.startsWith("http")
+        ? imageUrls
+        : `http://localhost:3000/images/${imageUrls}`,
+    ];
   }
   return [getPlaceholderImage()];
 }
@@ -36,8 +47,8 @@ function parseImageUrls(imageUrls) {
  * @param {string} productId - Product ID from URL
  */
 export function createProductDetailPage(productId) {
-  const app = document.getElementById('app');
-  
+  const app = document.getElementById("app");
+
   // Show loading state first
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -62,45 +73,70 @@ async function loadProduct(productId) {
     } else {
       renderError();
     }
+
+    const csrf = await authAPI.getCsrfToken(); 
+
+    // Injecter le csrf dans le formulaire dans un input hidden pour ensutee le recup apres
+    // const csrfInput = document.createElement("input");
+    // csrfInput.type = "hidden";
+    // csrfInput.name = "csrf";
+    // csrfInput.className = "csrf";
+    // csrfInput.value = csrf.csrfToken;
+    // const produitDetaiPage = document.getElementById("product-detail-page");
+    // produitDetaiPage.appendChild(csrfInput);
   } catch (error) {
     renderError();
   }
 }
 
 function renderProductDetail() {
-  const app = document.getElementById('app');
+  const app = document.getElementById("app");
   const currentUser = auth.getCurrentUser();
   const cartSummary = cartService.getSummary();
 
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      ${createNavbar({ 
-        currentPage: 'product-detail', 
-        showBackButton: true, 
-        backUrl: '/products', 
-        pageTitle: 'Détail Produit' 
+      ${createNavbar({
+        currentPage: "product-detail",
+        showBackButton: true,
+        backUrl: "/products",
+        pageTitle: "Détail Produit",
       })}
-      <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="product-detail-page">
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col lg:flex-row gap-8">
           <!-- Images & Gallery -->
           <div class="flex-1 flex flex-col items-center">
             <div class="relative w-72 h-72 rounded-xl overflow-hidden bg-gray-100 mb-4">
-              <img src="${currentProduct.images[0]}" alt="${currentProduct.libelle}" class="w-full h-full object-cover" />
-              ${currentProduct.images.length > 1 ? `
+              <img src="${currentProduct.images[0]}" alt="${
+    currentProduct.libelle
+  }" class="w-full h-full object-cover" />
+              ${
+                currentProduct.images.length > 1
+                  ? `
                 <button id="prev-image" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white">
                   <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
                 <button id="next-image" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white">
                   <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
             <div class="flex gap-2 mt-2">
-              ${currentProduct.images.map((img, idx) => `
-                <button class="w-12 h-12 rounded-lg overflow-hidden border-2 ${idx === currentImageIndex ? 'border-indigo-600' : 'border-transparent'} focus:outline-none" data-image-idx="${idx}">
+              ${currentProduct.images
+                .map(
+                  (img, idx) => `
+                <button class="w-12 h-12 rounded-lg overflow-hidden border-2 ${
+                  idx === currentImageIndex
+                    ? "border-indigo-600"
+                    : "border-transparent"
+                } focus:outline-none" data-image-idx="${idx}">
                   <img src="${img}" alt="Miniature" class="w-full h-full object-cover" />
                   </button>
-                `).join('')}
+                `
+                )
+                .join("")}
               </div>
           </div>
           <!-- Infos produit -->
@@ -126,14 +162,24 @@ function renderProductDetail() {
               <!-- Bouton Ajouter au panier (toujours visible) -->
               <button 
                 onclick="addToCart(${currentProduct.id})"
-                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium ${cartService.isInCart(currentProduct.id) ? 'opacity-60 cursor-not-allowed' : ''}"
-                ${cartService.isInCart(currentProduct.id) ? 'disabled' : ''}
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium ${
+                  cartService.isInCart(currentProduct.id)
+                    ? "opacity-60 cursor-not-allowed"
+                    : ""
+                }"
+                ${cartService.isInCart(currentProduct.id) ? "disabled" : ""}
               >
-                ${cartService.isInCart(currentProduct.id) ? '✓ Dans le panier' : '🛒 Ajouter au panier'}
+                ${
+                  cartService.isInCart(currentProduct.id)
+                    ? "✓ Dans le panier"
+                    : "🛒 Ajouter au panier"
+                }
               </button>
 
               <!-- Boutons de gestion (modification et suppression) -->
-              ${currentUser ? `
+              ${
+                currentUser
+                  ? `
                 <div class="flex gap-3">
                   <button 
                     id="edit-product-btn" 
@@ -155,7 +201,9 @@ function renderProductDetail() {
                     Supprimer
                   </button>
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
           </div>
         </div>
@@ -189,24 +237,24 @@ function initializeProductDetail() {
   // }
 
   // Image navigation
-  const prevBtn = document.getElementById('prev-image');
-  const nextBtn = document.getElementById('next-image');
+  const prevBtn = document.getElementById("prev-image");
+  const nextBtn = document.getElementById("next-image");
 
   if (prevBtn) {
-    prevBtn.addEventListener('click', () => changeImage(currentImageIndex - 1));
+    prevBtn.addEventListener("click", () => changeImage(currentImageIndex - 1));
   }
 
   if (nextBtn) {
-    nextBtn.addEventListener('click', () => changeImage(currentImageIndex + 1));
+    nextBtn.addEventListener("click", () => changeImage(currentImageIndex + 1));
   }
 
   // Quantity controls
-  const qtyMinus = document.getElementById('qty-minus');
-  const qtyPlus = document.getElementById('qty-plus');
-  const qtyInput = document.getElementById('quantity');
+  const qtyMinus = document.getElementById("qty-minus");
+  const qtyPlus = document.getElementById("qty-plus");
+  const qtyInput = document.getElementById("quantity");
 
   if (qtyMinus) {
-    qtyMinus.addEventListener('click', () => {
+    qtyMinus.addEventListener("click", () => {
       const current = parseInt(qtyInput.value);
       if (current > 1) {
         qtyInput.value = current - 1;
@@ -215,7 +263,7 @@ function initializeProductDetail() {
   }
 
   if (qtyPlus) {
-    qtyPlus.addEventListener('click', () => {
+    qtyPlus.addEventListener("click", () => {
       const current = parseInt(qtyInput.value);
       if (current < currentProduct.stock) {
         qtyInput.value = current + 1;
@@ -224,38 +272,43 @@ function initializeProductDetail() {
   }
 
   // Add to cart functionality
-  const addToCartBtn = document.getElementById('add-to-cart');
+  const addToCartBtn = document.getElementById("add-to-cart");
   if (addToCartBtn) {
-    addToCartBtn.addEventListener('click', handleAddToCart);
+    addToCartBtn.addEventListener("click", handleAddToCart);
   }
 
   // Bouton modifier
-  const editBtn = document.getElementById('edit-product-btn');
+  const editBtn = document.getElementById("edit-product-btn");
   if (editBtn) {
-    editBtn.addEventListener('click', () => {
+    editBtn.addEventListener("click", () => {
       // Vérifier que l'utilisateur est connecté
       const currentUser = auth.getCurrentUser();
       if (!currentUser) {
-        showToast('Vous devez être connecté pour modifier un produit', 'error');
-        router.navigate('/login');
+        showToast("Vous devez être connecté pour modifier un produit", "error");
+        router.navigate("/login");
         return;
       }
 
-      showProductFormModal({ 
-        mode: 'edit', 
-        product: { ...currentProduct, images: currentProduct.image_url }, 
+      showProductFormModal({
+        mode: "edit",
+        product: { ...currentProduct, images: currentProduct.image_url },
         onSuccess: () => {
-          showToast('Produit modifié avec succès !', 'success');
+          showToast("Produit modifié avec succès !", "success");
           setTimeout(() => window.location.reload(), 1000);
-        }
+        },
       });
     });
   }
 
   // Bouton supprimer
-  const deleteBtn = document.getElementById('delete-product-btn');
+  const deleteBtn = document.getElementById("delete-product-btn");
   if (deleteBtn) {
-    deleteBtn.addEventListener('click', handleDeleteProduct);
+    // Récupérer le csrf
+
+    deleteBtn.addEventListener("click", () => {
+      // const csrf = document.getElementsByName("csrf");
+      handleDeleteProduct();
+    });
   }
 
   // Cart listener
@@ -274,7 +327,7 @@ function changeImage(newIndex) {
     currentImageIndex = newIndex;
   }
 
-  const mainImage = document.getElementById('main-image');
+  const mainImage = document.getElementById("main-image");
   if (mainImage) {
     mainImage.src = currentProduct.images[currentImageIndex];
   }
@@ -283,11 +336,11 @@ function changeImage(newIndex) {
   const thumbnails = document.querySelectorAll('[onclick*="changeImage"]');
   thumbnails.forEach((thumb, index) => {
     if (index === currentImageIndex) {
-      thumb.classList.add('border-indigo-500');
-      thumb.classList.remove('border-gray-200');
+      thumb.classList.add("border-indigo-500");
+      thumb.classList.remove("border-gray-200");
     } else {
-      thumb.classList.remove('border-indigo-500');
-      thumb.classList.add('border-gray-200');
+      thumb.classList.remove("border-indigo-500");
+      thumb.classList.add("border-gray-200");
     }
   });
 }
@@ -296,17 +349,17 @@ function changeImage(newIndex) {
  * Handle add to cart action
  */
 async function handleAddToCart() {
-  const qtyInput = document.getElementById('quantity');
+  const qtyInput = document.getElementById("quantity");
   const quantity = parseInt(qtyInput.value) || 1;
 
   const result = await cartOperations.addToCart(currentProduct, quantity);
-  
+
   if (result.success) {
-    showToast(result.message, 'success');
+    showToast(result.message, "success");
     // Re-render to update UI
     renderProductDetail();
   } else {
-    showToast(result.message, 'error');
+    showToast(result.message, "error");
   }
 }
 
@@ -317,8 +370,8 @@ async function handleDeleteProduct() {
   // Vérifier que l'utilisateur est connecté
   const currentUser = auth.getCurrentUser();
   if (!currentUser) {
-    showToast('Vous devez être connecté pour supprimer un produit', 'error');
-    router.navigate('/login');
+    showToast("Vous devez être connecté pour supprimer un produit", "error");
+    router.navigate("/login");
     return;
   }
 
@@ -341,7 +394,7 @@ async function handleDeleteProduct() {
 
   try {
     // Désactiver le bouton pendant la suppression
-    const deleteBtn = document.getElementById('delete-product-btn');
+    const deleteBtn = document.getElementById("delete-product-btn");
     if (deleteBtn) {
       deleteBtn.disabled = true;
       deleteBtn.innerHTML = `
@@ -355,34 +408,32 @@ async function handleDeleteProduct() {
     const response = await productsAPI.deleteProduct(currentProduct.id);
 
     if (response.success) {
-      showToast('Produit supprimé avec succès !', 'success');
-      
+      showToast("Produit supprimé avec succès !", "success");
+
       // Rediriger vers la liste des produits après 1.5 secondes
       setTimeout(() => {
-        router.navigate('/products');
+        router.navigate("/products");
       }, 1500);
-      
     } else {
-      throw new Error(response.message || 'Erreur lors de la suppression');
+      throw new Error(response.message || "Erreur lors de la suppression");
     }
-
   } catch (error) {
-    console.error('Erreur lors de la suppression du produit:', error);
-    
+    console.error("Erreur lors de la suppression du produit:", error);
+
     // Gestion spécifique des erreurs d'authentification
-    if (error.message && error.message.includes('Token manquant')) {
-      showToast('Session expirée. Veuillez vous reconnecter.', 'error');
+    if (error.message && error.message.includes("Token manquant")) {
+      showToast("Session expirée. Veuillez vous reconnecter.", "error");
       setTimeout(() => {
         auth.logout();
-        router.navigate('/login');
+        router.navigate("/login");
       }, 2000);
       return;
     }
-    
-    showToast('Erreur lors de la suppression du produit', 'error');
-    
+
+    showToast("Erreur lors de la suppression du produit", "error");
+
     // Réactiver le bouton en cas d'erreur
-    const deleteBtn = document.getElementById('delete-product-btn');
+    const deleteBtn = document.getElementById("delete-product-btn");
     if (deleteBtn) {
       deleteBtn.disabled = false;
       deleteBtn.innerHTML = `
@@ -399,32 +450,32 @@ async function handleDeleteProduct() {
  * Update cart counter in navigation
  */
 function updateCartCounter(cartSummary) {
-  const cartCount = document.getElementById('cart-count');
+  const cartCount = document.getElementById("cart-count");
   if (cartCount) {
     cartCount.textContent = cartSummary.itemCount;
-    cartCount.style.display = cartSummary.itemCount > 0 ? 'flex' : 'none';
+    cartCount.style.display = cartSummary.itemCount > 0 ? "flex" : "none";
   }
 }
 
 /**
  * Show toast notification
  */
-function showToast(message, type = 'success') {
-  const container = document.getElementById('toast-container');
+function showToast(message, type = "success") {
+  const container = document.getElementById("toast-container");
   if (!container) return;
 
-  const toast = document.createElement('div');
-  const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-  
+  const toast = document.createElement("div");
+  const bgColor = type === "success" ? "bg-green-500" : "bg-red-500";
+
   toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg mb-2 transform translate-x-full transition-transform duration-300`;
   toast.textContent = message;
-  
+
   container.appendChild(toast);
-  
-  setTimeout(() => toast.classList.remove('translate-x-full'), 100);
-  
+
+  setTimeout(() => toast.classList.remove("translate-x-full"), 100);
+
   setTimeout(() => {
-    toast.classList.add('translate-x-full');
+    toast.classList.add("translate-x-full");
     setTimeout(() => container.removeChild(toast), 300);
   }, 3000);
 }
@@ -433,8 +484,8 @@ function showToast(message, type = 'success') {
  * Render not found page
  */
 function renderNotFound() {
-  const app = document.getElementById('app');
-  
+  const app = document.getElementById("app");
+
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
       <div class="text-center">
@@ -460,8 +511,8 @@ function renderNotFound() {
  * Render error page
  */
 function renderError() {
-  const app = document.getElementById('app');
-  
+  const app = document.getElementById("app");
+
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
       <div class="text-center">
@@ -496,14 +547,14 @@ function renderError() {
  */
 window.changeImage = changeImage;
 
-window.addToCart = async function(productId) {
+window.addToCart = async function (productId) {
   const result = await cartOperations.addToCart(currentProduct, 1);
-  
+
   if (result.success) {
-    showToast(result.message, 'success');
+    showToast(result.message, "success");
     // Re-render to update UI
     renderProductDetail();
   } else {
-    showToast(result.message, 'error');
+    showToast(result.message, "error");
   }
-}; 
+};

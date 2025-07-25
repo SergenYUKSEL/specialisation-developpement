@@ -227,7 +227,8 @@ export const productsAPI = {
   async deleteProduct(productId) {
     try {
       const response = await apiRequest(`/products/${productId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include',
       });
 
       return response;

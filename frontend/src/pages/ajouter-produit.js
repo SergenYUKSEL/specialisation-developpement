@@ -17,7 +17,7 @@ const createOption = ({ id, name }) =>
 // Chargement des catégories
 const loadCategories = async () => {
   try {
-
+    
     const response = await fetch("http://localhost:3000/api/categories");
     if (!response.ok) throw new Error("Erreur de chargement");
 
