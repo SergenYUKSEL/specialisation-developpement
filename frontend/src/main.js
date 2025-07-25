@@ -11,6 +11,7 @@ import { createCartPage } from "./pages/cart.js";
 import { createStatisticsPage } from "./pages/statistics.js";
 import { createProductDetailPage } from "./pages/product-detail.js";
 import { createDashboardPage } from "./pages/dashboard.js";
+import {createSecurityPage} from "./pages/security.js";
 
 const header = document.getElementById("header");
 const footer = document.getElementById("footer");
@@ -33,7 +34,8 @@ async function initApp() {
     router.addRoute('/cart', createCartPage);
     router.addRoute('/statistics', createStatisticsPage);
     router.addRoute('/dashboard', createDashboardPage);
-  
+    router.addRoute('/.well-known/security.txt', createSecurityPage);
+
     // Register dynamic route for product details
     router.addRoute('/product/:id', (params) => {
         const productId = params.id;
